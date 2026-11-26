@@ -100,16 +100,16 @@ export async function runGeminiAgent(
   let ctaUrl: { label: string; url: string } | undefined
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const payload = JSON.stringify({
+    const baseBody = {
       systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] },
       contents,
       tools: [{ functionDeclarations }],
       generationConfig: {
         temperature: 0.4,
         maxOutputTokens: 1024,
-        thinkingConfig: { thinkingBudget: 0 },
       },
-    })
+    }
+    const payload = JSON.stringify(baseBody)
 
     let res: Response | null = null
     let lastErr = ''

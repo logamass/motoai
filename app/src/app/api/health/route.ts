@@ -25,6 +25,7 @@ export async function GET(req: Request): Promise<NextResponse> {
     const modelsToTry = Array.from(
       new Set([primary, 'gemini-2.5-flash-lite', 'gemini-flash-latest'])
     )
+    const attempts: Array<Record<string, unknown>> = []
     for (const m of modelsToTry) {
       const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`
       try {
@@ -36,18 +37,19 @@ export async function GET(req: Request): Promise<NextResponse> {
           },
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: 'Say OK' }] }],
-            generationConfig: {
-              maxOutputTokens: 16,
-              thinkingConfig: { thinkingBudget: 0 },
-            },
+            generationConfig: { maxOutputTokens: 16 },
           }),
           signal: AbortSignal.timeout(10000),
         })
         const txt = await r.text()
-        llmTest = { ok: r.ok, status: r.status, model: m, endpoint: testUrl, sample: txt.slice(0, 220) }
+        const entry = { ok: r.ok, status: r.status, model: m, sample: txt.slice(0, 180) }
+        attempts.push(entry)
+        llmTest = { ...entry, attempts }
         if (r.ok) break
       } catch (e) {
-        llmTest = { ok: false, model: m, error: e instanceof Error ? e.message : String(e) }
+        const entry = { ok: false, model: m, error: e instanceof Error ? e.message : String(e) }
+        attempts.push(entry)
+        llmTest = { ...entry, attempts }
       }
     }
   }
