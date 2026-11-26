@@ -20,9 +20,10 @@ export async function GET(req: Request): Promise<NextResponse> {
   let llmTest: Record<string, unknown> | undefined
   if (url.searchParams.get('testLlm') === '1' && env.GEMINI_API_KEY?.trim()) {
     const key = env.GEMINI_API_KEY.trim()
-    const model = env.GEMINI_MODEL || 'gemini-flash-latest'
+    const configured = env.GEMINI_MODEL || 'gemini-flash-lite-latest'
+    const primary = configured === 'gemini-flash-latest' ? 'gemini-flash-lite-latest' : configured
     const modelsToTry = Array.from(
-      new Set([model, 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'])
+      new Set([primary, 'gemini-2.5-flash-lite', 'gemini-flash-latest'])
     )
     for (const m of modelsToTry) {
       const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`

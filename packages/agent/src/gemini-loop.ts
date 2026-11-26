@@ -73,13 +73,13 @@ export async function runGeminiAgent(
     throw new Error('GEMINI_API_KEY is not configured')
   }
 
-  const model = env.GEMINI_MODEL || 'gemini-flash-latest'
+  const configured = env.GEMINI_MODEL || 'gemini-flash-lite-latest'
+  const primary = configured === 'gemini-flash-latest' ? 'gemini-flash-lite-latest' : configured
   const candidateEndpoints = Array.from(
     new Set([
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(primary)}:generateContent`,
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
     ])
   )
 
