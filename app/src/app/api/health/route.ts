@@ -21,27 +21,33 @@ export async function GET(req: Request): Promise<NextResponse> {
   if (url.searchParams.get('testLlm') === '1' && env.GEMINI_API_KEY?.trim()) {
     const key = env.GEMINI_API_KEY.trim()
     const model = env.GEMINI_MODEL || 'gemini-flash-latest'
-    const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`
-    try {
-      const r = await fetch(testUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': key,
-        },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: 'Say OK' }] }],
-          generationConfig: {
-            maxOutputTokens: 16,
-            thinkingConfig: { thinkingBudget: 0 },
+    const modelsToTry = Array.from(
+      new Set([model, 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'])
+    )
+    for (const m of modelsToTry) {
+      const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`
+      try {
+        const r = await fetch(testUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': key,
           },
-        }),
-        signal: AbortSignal.timeout(15000),
-      })
-      const txt = await r.text()
-      llmTest = { ok: r.ok, status: r.status, endpoint: testUrl, sample: txt.slice(0, 220) }
-    } catch (e) {
-      llmTest = { ok: false, error: e instanceof Error ? e.message : String(e) }
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: 'Say OK' }] }],
+            generationConfig: {
+              maxOutputTokens: 16,
+              thinkingConfig: { thinkingBudget: 0 },
+            },
+          }),
+          signal: AbortSignal.timeout(10000),
+        })
+        const txt = await r.text()
+        llmTest = { ok: r.ok, status: r.status, model: m, endpoint: testUrl, sample: txt.slice(0, 220) }
+        if (r.ok) break
+      } catch (e) {
+        llmTest = { ok: false, model: m, error: e instanceof Error ? e.message : String(e) }
+      }
     }
   }
 

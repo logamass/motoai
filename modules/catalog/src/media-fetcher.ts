@@ -34,9 +34,9 @@ export async function fetchCopyrightFreeCarPhoto(
 
   // Special international aliases for Indian badge-engineered models
   const lower = modelName.toLowerCase()
-  if (lower.includes('hycross')) queries.push('Toyota Innova Zenix 2023')
-  if (lower.includes('taisor')) queries.push('Toyota Starlet Cross', 'Suzuki Fronx front')
-  if (lower.includes('glanza')) queries.push('Toyota Starlet 2022', 'Suzuki Baleno 2022')
+  if (lower.includes('hycross')) queries.unshift('Toyota Innova Zenix 2023')
+  if (lower.includes('taisor')) queries.unshift('Toyota Urban Cruiser Taisor', 'Suzuki Fronx front')
+  if (lower.includes('glanza')) queries.unshift('Toyota Glanza 2022', 'Suzuki Baleno 2022 front')
 
   for (const query of queries) {
     try {

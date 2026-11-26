@@ -74,11 +74,14 @@ export async function runGeminiAgent(
   }
 
   const model = env.GEMINI_MODEL || 'gemini-flash-latest'
-  const candidateEndpoints = [
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
-  ]
+  const candidateEndpoints = Array.from(
+    new Set([
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent`,
+    ])
+  )
 
   let activeEndpoint = candidateEndpoints[0]
 
@@ -112,21 +115,25 @@ export async function runGeminiAgent(
     let lastErr = ''
     const urlsToTry = round === 0 ? candidateEndpoints : [activeEndpoint]
     for (const url of urlsToTry) {
-      const attempt = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
-        },
-        body: payload,
-        signal: AbortSignal.timeout(25000),
-      })
-      if (attempt.ok) {
-        res = attempt
-        activeEndpoint = url
-        break
+      try {
+        const attempt = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: payload,
+          signal: AbortSignal.timeout(12000),
+        })
+        if (attempt.ok) {
+          res = attempt
+          activeEndpoint = url
+          break
+        }
+        lastErr = `HTTP ${attempt.status}: ${(await attempt.text().catch(() => '')).slice(0, 180)}`
+      } catch (err) {
+        lastErr = err instanceof Error ? err.message : String(err)
       }
-      lastErr = `HTTP ${attempt.status}: ${(await attempt.text().catch(() => '')).slice(0, 180)}`
     }
 
     if (!res) {
