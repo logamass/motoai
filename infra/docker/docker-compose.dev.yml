@@ -1,0 +1,24 @@
+# MotoAI — Local Development
+# Usage: docker compose -f infra/docker/docker-compose.dev.yml up -d
+# DB will be available at localhost:5432
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: motoai-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: motoai
+      POSTGRES_PASSWORD: motoai_dev
+      POSTGRES_DB: motoai
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U motoai"]
+      interval: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:

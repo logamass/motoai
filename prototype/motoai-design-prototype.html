@@ -1,0 +1,3111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MotoAI · Chennai Toyota Visual Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      /* Customer Canvas */
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --ink: #0F172A;
+      --ink-2: #334155;
+      --muted: #64748B;
+      --border: #E2E8F0;
+
+      /* Brand Palette */
+      --brand: #0B6E6E;
+      --brand-2: #0F8A8A;
+      --brand-soft: #E6F4F4;
+      --accent: #F59E0B;
+      --accent-soft: #FEF3C7;
+
+      /* Semantic */
+      --ok: #16A34A;
+      --ok-soft: #DCFCE7;
+      --danger: #DC2626;
+      --danger-soft: #FEE2E2;
+      --wa: #075E54;
+      --wa-green: #25D366;
+
+      /* Ops Sidebar */
+      --sidebar-bg: #0F172A;
+      --sidebar-hover: #1E293B;
+      --sidebar-active: #0B6E6E;
+
+      /* Radii & Shadows */
+      --r-sm: 10px;
+      --r-md: 12px;
+      --r-lg: 16px;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.05);
+      --shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(15, 23, 42, 0.06);
+      --t: 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font-family: inherit; }
+    .num { font-variant-numeric: tabular-nums; }
+    .hidden { display: none !important; }
+
+    /* ================= TOP PROTOTYPE SWITCHER BAR (44px) ================= */
+    .proto-bar {
+      position: sticky;
+      top: 0;
+      z-index: 900;
+      height: 44px;
+      background: #090E1A;
+      color: #F8FAFC;
+      border-bottom: 1px solid rgba(255,255,255,0.09);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      gap: 12px;
+    }
+    .proto-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    .proto-dot {
+      width: 8px; height: 8px; border-radius: 999px;
+      background: #25D366;
+      box-shadow: 0 0 0 3px rgba(37,211,102,0.22);
+    }
+    .proto-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255,255,255,0.06);
+      padding: 3px;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+    .proto-tab {
+      border: 0;
+      background: transparent;
+      color: #CBD5E1;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--t);
+    }
+    .proto-tab:hover { color: #FFFFFF; background: rgba(255,255,255,0.08); }
+    .proto-tab.active {
+      background: var(--brand);
+      color: #FFFFFF;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.28);
+    }
+    .lang-pill {
+      display: inline-flex;
+      background: rgba(255,255,255,0.08);
+      padding: 2px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+    .lang-btn {
+      border: 0;
+      background: transparent;
+      color: #CBD5E1;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all var(--t);
+    }
+    .lang-btn.active {
+      background: #FFFFFF;
+      color: var(--ink);
+    }
+
+    /* ================= SHARED BUTTONS & BADGES ================= */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid transparent;
+      border-radius: var(--r-sm);
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 9px 15px;
+      cursor: pointer;
+      transition: all var(--t);
+      white-space: nowrap;
+    }
+    .btn-sm { padding: 6px 11px; font-size: 12.5px; border-radius: 8px; }
+    .btn-primary { background: var(--brand); color: #FFF; }
+    .btn-primary:hover { background: var(--brand-2); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+    .btn-outline { background: var(--surface); color: var(--ink); border-color: var(--border); }
+    .btn-outline:hover { border-color: #CBD5E1; background: #F1F5F9; }
+    .btn-soft { background: var(--brand-soft); color: var(--brand); }
+    .btn-soft:hover { background: #D1ECEC; }
+    .btn-wa { background: var(--wa); color: #FFF; }
+    .btn-wa:hover { background: #097367; }
+    .btn-danger-soft { background: var(--danger-soft); color: var(--danger); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .badge-brand { background: var(--brand-soft); color: var(--brand); }
+    .badge-ok { background: var(--ok-soft); color: var(--ok); }
+    .badge-accent { background: var(--accent-soft); color: #B45309; }
+    .badge-danger { background: var(--danger-soft); color: var(--danger); }
+    .badge-slate { background: #F1F5F9; color: var(--ink-2); }
+
+    /* ================= MODE 1: CUSTOMER PLATFORM ================= */
+    .c-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .c-header-inner {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 13px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+    }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #FFF;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(11,110,110,0.24);
+    }
+    .c-nav {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+    .c-nav a, .c-nav button.nav-link {
+      background: none; border: 0; cursor: pointer;
+      text-decoration: none;
+      color: var(--ink-2);
+      font-size: 14px;
+      font-weight: 600;
+      transition: color var(--t);
+    }
+    .c-nav a:hover, .c-nav button.nav-link:hover { color: var(--brand); }
+    .google-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #FFF; color: var(--ink); border: 1px solid var(--border);
+      padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all var(--t);
+      box-shadow: var(--shadow-sm);
+    }
+    .google-btn:hover { background: #F8FAFC; border-color: #CBD5E1; }
+
+    .trust-banner {
+      background: linear-gradient(90deg, #ECFDF5, #E6F4F4, #ECFDF5);
+      border-bottom: 1px solid #CCE7E7;
+      padding: 8px 16px;
+      text-align: center;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #065F46;
+    }
+
+    .hero {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 36px 20px 26px;
+    }
+    .hero-card {
+      background: radial-gradient(circle at 90% 10%, rgba(11,110,110,0.09), transparent 45%),
+                  radial-gradient(circle at 10% 90%, rgba(245,158,11,0.08), transparent 45%),
+                  var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 34px 32px;
+      box-shadow: var(--shadow-md);
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--brand-soft); color: var(--brand);
+      font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 999px;
+      margin-bottom: 14px;
+    }
+    .hero-title {
+      font-size: clamp(26px, 3.6vw, 38px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      max-width: 780px;
+      color: var(--ink);
+    }
+    .hero-sub {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 680px;
+    }
+    .ai-search-box {
+      margin-top: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #FFF;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 6px 6px 6px 16px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color var(--t), box-shadow var(--t);
+      max-width: 780px;
+    }
+    .ai-search-box:focus-within {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(11,110,110,0.12);
+    }
+    .ai-search-box input {
+      flex: 1; border: 0; outline: 0; font-size: 14.5px; color: var(--ink); min-width: 0;
+    }
+    .chips-row {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .prompt-chip {
+      border: 1px solid var(--border);
+      background: #F8FAFC;
+      color: var(--ink-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all var(--t);
+    }
+    .prompt-chip:hover {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+    .trust-strip {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+
+    /* Showroom Grid */
+    .showroom-wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 8px 20px 70px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .filter-pill {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all var(--t);
+    }
+    .filter-pill:hover { border-color: #94A3B8; }
+    .filter-pill.active {
+      background: var(--ink);
+      color: #FFF;
+      border-color: var(--ink);
+    }
+    .sort-select {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 10px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .cars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+    @media (max-width: 1024px) { .cars-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 660px) {
+      .cars-grid { grid-template-columns: 1fr; }
+      .c-nav { display: none; }
+      .hero-card { padding: 22px 18px; }
+      .ai-search-box { flex-direction: column; align-items: stretch; padding: 10px; }
+    }
+
+    .car-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--t), box-shadow var(--t), border-color var(--t);
+    }
+    .car-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: #CBD5E1;
+    }
+    .car-stage {
+      position: relative;
+      height: 164px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .car-stage::after {
+      content: '';
+      position: absolute;
+      bottom: 14px;
+      left: 15%;
+      right: 15%;
+      height: 16px;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.42), transparent 72%);
+      pointer-events: none;
+    }
+    .wait-pill {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(6px);
+      color: #FFF;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    .compare-check {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255,255,255,0.92);
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      border: 1px solid rgba(15,23,42,0.08);
+    }
+    .car-body {
+      padding: 16px 18px 18px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .car-top-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .car-name {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .car-sub {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .car-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 11px 0 14px;
+    }
+    .car-price-block {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 13px;
+      margin-bottom: 14px;
+    }
+    .car-price-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--brand);
+    }
+    .car-price-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 2px;
+    }
+    .car-price {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    .car-emi {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+    .car-ex {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    .car-actions {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 8px;
+    }
+
+    /* Floating Chat Bubble & Drawer */
+    .fab-chat {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 820;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #FFF;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      box-shadow: var(--shadow-lg);
+      cursor: pointer;
+      transition: transform var(--t);
+    }
+    .fab-chat:hover { transform: translateY(-2px) scale(1.02); }
+    .chat-drawer {
+      position: fixed;
+      right: 22px;
+      bottom: 78px;
+      width: min(410px, calc(100vw - 24px));
+      height: min(560px, calc(100vh - 130px));
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow-lg);
+      z-index: 850;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .drawer-head {
+      background: var(--brand);
+      color: #FFF;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .wa-sync-banner {
+      background: #FEF3C7;
+      color: #92400E;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-bottom: 1px solid #FDE68A;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .drawer-msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      background: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .msg-bubble {
+      max-width: 86%;
+      padding: 10px 13px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.45;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.05);
+    }
+    .msg-user {
+      align-self: flex-end;
+      background: var(--brand);
+      color: #FFF;
+      border-bottom-right-radius: 4px;
+    }
+    .msg-ai {
+      align-self: flex-start;
+      background: #FFF;
+      color: var(--ink);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+    .drawer-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      background: #FFF;
+    }
+    .drawer-input-row input {
+      flex: 1; border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 12px; font-size: 13.5px; outline: none;
+    }
+    .drawer-input-row input:focus { border-color: var(--brand); }
+
+    /* Modal / Slide-over Breakup */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+      z-index: 950;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .modal-backdrop.center {
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .slide-over {
+      width: min(540px, 100vw);
+      height: 100%;
+      background: var(--surface);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .center-modal {
+      width: min(860px, 100%);
+      max-height: 90vh;
+      background: var(--surface);
+      border-radius: 18px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .seg-toggle {
+      display: inline-flex;
+      background: #F1F5F9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .seg-btn {
+      border: 0;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all var(--t);
+    }
+    .seg-btn.active {
+      background: #FFF;
+      color: var(--brand);
+      box-shadow: var(--shadow-sm);
+    }
+    .breakup-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13.5px;
+    }
+    .breakup-table td {
+      padding: 9px 4px;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .breakup-table td:last-child {
+      text-align: right;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .breakup-total td {
+      border-top: 2px solid var(--ink);
+      border-bottom: 0;
+      padding-top: 12px;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--brand);
+    }
+    .emi-box {
+      margin-top: 18px;
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 15px;
+    }
+    .slider-row {
+      margin-top: 10px;
+    }
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink-2);
+      margin-bottom: 4px;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--brand);
+      cursor: pointer;
+    }
+
+    /* ================= MODE 2: RICH AI CHAT (WHATSAPP <-> WEB) ================= */
+    .wa-mode-wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 26px 20px 50px;
+      display: grid;
+      grid-template-columns: 1fr 430px;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .wa-mode-wrap { grid-template-columns: 1fr; }
+    }
+    .wa-explainer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 26px;
+      box-shadow: var(--shadow-sm);
+    }
+    .wa-phone {
+      background: #111B21;
+      border-radius: 34px;
+      padding: 11px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+      border: 2px solid #334155;
+    }
+    .wa-screen {
+      background: #EFE7DD;
+      background-image: radial-gradient(rgba(7, 94, 84, 0.06) 1px, transparent 1px);
+      background-size: 18px 18px;
+      border-radius: 24px;
+      overflow: hidden;
+      height: 670px;
+      display: flex;
+      flex-direction: column;
+    }
+    .wa-header {
+      background: var(--wa);
+      color: #FFF;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .wa-avatar {
+      width: 36px; height: 36px; border-radius: 999px;
+      background: #25D366; color: #075E54;
+      display: grid; place-items: center; font-weight: 800; font-size: 14px;
+      flex-shrink: 0;
+    }
+    .wa-thread {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .wa-msg {
+      max-width: 88%;
+      padding: 9px 11px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.42;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+    }
+    .wa-msg.in {
+      align-self: flex-start;
+      background: #FFFFFF;
+      color: #111B21;
+      border-top-left-radius: 3px;
+    }
+    .wa-msg.out {
+      align-self: flex-end;
+      background: #D9FDD3;
+      color: #111B21;
+      border-top-right-radius: 3px;
+    }
+    .wa-time {
+      display: block;
+      text-align: right;
+      font-size: 10px;
+      color: #667781;
+      margin-top: 4px;
+    }
+    .wa-carousel {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 4px 2px 8px;
+      width: 100%;
+      flex-shrink: 0;
+    }
+    .wa-car-card {
+      min-width: 208px;
+      max-width: 208px;
+      background: #FFF;
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+    .wa-car-head {
+      height: 76px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wa-car-body { padding: 10px; }
+    .wa-breakup-card {
+      background: #FFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 12px;
+      padding: 12px;
+      width: 94%;
+      align-self: flex-start;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+    .wa-composer {
+      background: #F0F2F5;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .wa-composer input {
+      flex: 1; border: 0; outline: 0; background: #FFF;
+      border-radius: 999px; padding: 9px 14px; font-size: 13px;
+    }
+    .wa-send {
+      width: 36px; height: 36px; border-radius: 999px; border: 0;
+      background: var(--wa); color: #FFF; font-weight: 700; cursor: pointer;
+      display: grid; place-items: center;
+    }
+
+    /* ================= MODE 3: INTERNAL OPS CONSOLE ================= */
+    .ops-shell {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: calc(100vh - 44px);
+    }
+    @media (max-width: 920px) {
+      .ops-shell { grid-template-columns: 1fr; }
+      .ops-sidebar { position: static !important; height: auto !important; }
+    }
+    .ops-sidebar {
+      background: var(--sidebar-bg);
+      color: #E2E8F0;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 44px;
+      height: calc(100vh - 44px);
+      border-right: 1px solid rgba(255,255,255,0.07);
+    }
+    .ops-side-brand {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 15px;
+      color: #FFF;
+    }
+    .ops-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 10px;
+    }
+    .ops-sec-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #64748B;
+      padding: 10px 10px 5px;
+      text-transform: uppercase;
+    }
+    .ops-nav-item {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #CBD5E1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 11px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--t);
+      margin-bottom: 2px;
+    }
+    .ops-nav-item:hover { background: var(--sidebar-hover); color: #FFF; }
+    .ops-nav-item.active { background: var(--sidebar-active); color: #FFF; }
+    .ops-nav-count {
+      background: rgba(255,255,255,0.14);
+      color: #FFF;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 999px;
+    }
+    .ops-user-card {
+      padding: 12px 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .ops-avatar {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: var(--brand); color: #FFF;
+      display: grid; place-items: center; font-weight: 800; font-size: 13px;
+    }
+    .ops-main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: #F1F5F9;
+    }
+    .ops-topbar {
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .ops-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ops-search {
+      border: 1px solid var(--border);
+      background: #F8FAFC;
+      border-radius: 9px;
+      padding: 6px 12px;
+      font-size: 13px;
+      width: 200px;
+      outline: none;
+    }
+    .ops-content {
+      padding: 20px 22px 40px;
+      flex: 1;
+    }
+
+    /* Ops Cards & Grids */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 580px) { .kpi-grid { grid-template-columns: 1fr; } }
+    .kpi-card, .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+    }
+    .kpi-val {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 4px 0;
+    }
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 980px) { .overview-grid { grid-template-columns: 1fr; } }
+
+    /* Inbox 3-pane */
+    .inbox-grid {
+      display: grid;
+      grid-template-columns: 260px 1fr 270px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      min-height: 590px;
+      box-shadow: var(--shadow-sm);
+    }
+    @media (max-width: 1120px) { .inbox-grid { grid-template-columns: 1fr; } }
+    .inbox-list { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .inbox-thread-item {
+      padding: 12px 14px;
+      border-bottom: 1px solid #F1F5F9;
+      cursor: pointer;
+      transition: background var(--t);
+    }
+    .inbox-thread-item:hover { background: #F8FAFC; }
+    .inbox-thread-item.active { background: var(--brand-soft); border-left: 3px solid var(--brand); }
+    .inbox-chat { display: flex; flex-direction: column; background: #F8FAFC; }
+    .inbox-profile { border-left: 1px solid var(--border); padding: 16px; background: #FFF; }
+
+    /* Tables & Inputs */
+    .ops-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .ops-table th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--border);
+    }
+    .ops-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #F1F5F9;
+      vertical-align: middle;
+    }
+    .cell-input {
+      width: 110px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .cell-input:focus { outline: none; border-color: var(--brand); }
+
+    /* Kanban */
+    .kanban-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(220px, 1fr));
+      gap: 14px;
+      overflow-x: auto;
+    }
+    .kanban-col {
+      background: #E2E8F0;
+      background: rgba(226, 232, 240, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 460px;
+    }
+    .kanban-card {
+      background: #FFF;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 12px;
+      margin-top: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: #CBD5E1; border-radius: 999px; transition: 0.2s;
+    }
+    .switch-slider::before {
+      content: ''; position: absolute; height: 16px; width: 16px;
+      left: 3px; bottom: 3px; background: #FFF; border-radius: 50%; transition: 0.2s;
+    }
+    .switch input:checked + .switch-slider { background: var(--brand); }
+    .switch input:checked + .switch-slider::before { transform: translateX(18px); }
+
+    /* Toast */
+    .toast-wrap {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      background: #0F172A;
+      color: #FFF;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    /* Dropzone */
+    .dropzone {
+      border: 2px dashed #CBD5E1;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      background: #F8FAFC;
+      cursor: pointer;
+      transition: all var(--t);
+    }
+    .dropzone:hover { border-color: var(--brand); background: var(--brand-soft); }
+  </style>
+</head>
+<body>
+
+  <!-- ================= STICKY TOP MODE SWITCHER BAR ================= -->
+  <header class="proto-bar">
+    <div class="proto-brand">
+      <span class="proto-dot"></span>
+      <span>MotoAI · Visual Prototype</span>
+    </div>
+    <div class="proto-tabs" role="tablist">
+      <button class="proto-tab active" data-mode="customer" onclick="switchMode('customer')">🚘 Customer Platform</button>
+      <button class="proto-tab" data-mode="chat" onclick="switchMode('chat')">💬 Rich AI Chat (WhatsApp ↔ Web)</button>
+      <button class="proto-tab" data-mode="ops" onclick="switchMode('ops')">🛠️ Internal Ops Console</button>
+    </div>
+    <div class="lang-pill" aria-label="Language switcher">
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" data-lang="ta" onclick="setLang('ta')">தமிழ்</button>
+      <button class="lang-btn" data-lang="tanglish" onclick="setLang('tanglish')">Tanglish</button>
+    </div>
+  </header>
+
+  <!-- ================= MODE 1: CUSTOMER PLATFORM ================= -->
+  <main id="mode-customer">
+    <div class="c-header">
+      <div class="c-header-inner">
+        <div class="brand-logo">
+          <div class="brand-mark">M</div>
+          <div>
+            <span>MotoAI</span>
+            <span style="font-size:11px;font-weight:700;color:var(--brand);background:var(--brand-soft);padding:2px 7px;border-radius:999px;margin-left:6px;">Chennai</span>
+          </div>
+        </div>
+        <nav class="c-nav">
+          <a href="#showroom-section">Cars</a>
+          <button class="nav-link" onclick="openCompareModal()">Compare (<span id="compare-count">0</span>)</button>
+          <button class="nav-link" onclick="switchMode('chat')">WhatsApp Advisor</button>
+        </nav>
+        <button id="google-signin-btn" class="google-btn" onclick="toggleGoogleSignIn()">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.7-5.5 3.7-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z"/></svg>
+          <span>Sign in with Google</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="trust-banner" id="trust-banner-text">
+      🔒 100% Anonymous On-Road Prices — Zero spam calls. Share WhatsApp only when you want a test drive.
+    </div>
+
+    <section class="hero">
+      <div class="hero-card">
+        <div class="hero-eyebrow">⚡ Oct 2026 Chennai RTO + Insurance Verified</div>
+        <h1 class="hero-title" id="hero-headline">Find the right car for your family — with exact Chennai On-Road prices.</h1>
+        <p class="hero-sub" id="hero-sub">Compare real 1+3 &amp; 3+3 insurance breakups, honest mileage feedback for OMR/Velachery traffic, and book a home test drive only when you're ready.</p>
+
+        <form class="ai-search-box" onsubmit="handleHeroSearch(event)">
+          <span style="font-size:18px;">✨</span>
+          <input id="hero-search-input" type="text" placeholder="Try: Automatic Hybrid SUV under ₹22L for Chennai city..." />
+          <button type="submit" class="btn btn-primary">Ask MotoAI →</button>
+        </form>
+
+        <div class="chips-row">
+          <button type="button" class="prompt-chip" onclick="runPromptChip('5 seater under ₹15L')">5 seater under ₹15L</button>
+          <button type="button" class="prompt-chip" onclick="runPromptChip('Best Hybrid for OMR traffic')">Best Hybrid for OMR traffic</button>
+          <button type="button" class="prompt-chip" onclick="runPromptChip('7 seater family MPV')">7 seater family MPV</button>
+          <button type="button" class="prompt-chip" onclick="runPromptChip('Hyryder exact breakup')">Hyryder exact breakup</button>
+        </div>
+
+        <div class="trust-strip">
+          <span>✓ Exact RTO + Insurance Breakup</span>
+          <span>✓ No Showroom Pressure</span>
+          <span>✓ English · தமிழ் · Tanglish</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="showroom-wrap" id="showroom-section">
+      <div class="toolbar">
+        <div class="filter-pills" id="filter-pills">
+          <button class="filter-pill active" data-filter="all" onclick="setFilter('all')">All (6)</button>
+          <button class="filter-pill" data-filter="hatchback" onclick="setFilter('hatchback')">Hatchback</button>
+          <button class="filter-pill" data-filter="suv" onclick="setFilter('suv')">SUV</button>
+          <button class="filter-pill" data-filter="hybrid" onclick="setFilter('hybrid')">Hybrid</button>
+          <button class="filter-pill" data-filter="mpv" onclick="setFilter('mpv')">7-Seater MPV</button>
+          <button class="filter-pill" data-filter="premium" onclick="setFilter('premium')">Premium</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-outline btn-sm" onclick="openCompareModal()">Compare Selected</button>
+          <select id="sort-select" class="sort-select" onchange="renderShowroom()">
+            <option value="low">Sort: Price Low to High</option>
+            <option value="high">Sort: Price High to Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cars-grid" id="cars-grid"></div>
+    </section>
+
+    <!-- Floating Chat Bubble + Drawer -->
+    <button class="fab-chat" onclick="toggleCustomerChat()">
+      <span>💬</span>
+      <span>Ask MotoAI</span>
+    </button>
+
+    <div class="chat-drawer hidden" id="customer-chat-drawer">
+      <div class="drawer-head">
+        <div>
+          <div style="font-weight:700;font-size:14px;">MotoAI Chennai Advisor</div>
+          <div style="font-size:11.5px;opacity:0.88;">Instant ₹ On-Road Quotes · Zero Spam</div>
+        </div>
+        <button onclick="toggleCustomerChat(false)" style="background:rgba(255,255,255,0.16);border:0;color:#FFF;width:28px;height:28px;border-radius:8px;cursor:pointer;font-weight:700;">✕</button>
+      </div>
+      <div class="wa-sync-banner hidden" id="wa-continued-banner">
+        <span>🔗 Continued from WhatsApp</span>
+        <span style="font-size:11px;opacity:0.8;">Synced live</span>
+      </div>
+      <div class="drawer-msgs" id="customer-chat-msgs"></div>
+      <form class="drawer-input-row" onsubmit="sendCustomerChat(event)">
+        <input id="customer-chat-input" type="text" placeholder="Ask about Hyryder, EMI, RTO..." />
+        <button type="submit" class="btn btn-primary btn-sm">Send</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- ================= MODE 2: RICH AI CHAT (WHATSAPP <-> WEB) ================= -->
+  <main id="mode-chat" class="hidden">
+    <div class="wa-mode-wrap">
+      <div class="wa-explainer">
+        <span class="badge badge-brand">WhatsApp ↔ Web Continuity</span>
+        <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.02em;margin-top:10px;">Rich interactive car buying right inside WhatsApp — with 1-tap Web handoff.</h2>
+        <p style="color:var(--muted);font-size:14.5px;margin-top:8px;">
+          Chennai buyers start on WhatsApp in English, Tamil, or Tanglish. MotoAI replies with honest local advice, swipeable car cards with verified on-road prices, inline 1+3 / 3+3 breakups, and seamless continuation onto the MotoAI Web Showroom.
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;">
+          <div style="padding:13px;border:1px solid var(--border);border-radius:12px;background:#F8FAFC;">
+            <div style="font-weight:700;font-size:13.5px;">⚡ Honest Local Guidance</div>
+            <div style="font-size:12.5px;color:var(--muted);margin-top:3px;">Real OMR traffic fuel math &amp; wait times, never pushy sales scripts.</div>
+          </div>
+          <div style="padding:13px;border:1px solid var(--border);border-radius:12px;background:#F8FAFC;">
+            <div style="font-weight:700;font-size:13.5px;">🛡️ Strict SQL &amp; UPI Guardrail</div>
+            <div style="font-size:12.5px;color:var(--muted);margin-top:3px;">Never hallucinates ₹ numbers and refuses bank/UPI payment requests.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:0.05em;margin-bottom:10px;">Quick Interactive Demos</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <button class="btn btn-outline btn-sm" onclick="appendWaPriceBreakup('hyryder-e')">📊 Trigger Inline Hyryder Breakup</button>
+            <button class="btn btn-outline btn-sm" onclick="simulateWaUserMsg('Send UPI ID or bank account to pay booking token')">🛡️ Test Bank / UPI Guardrail</button>
+            <button class="btn btn-outline btn-sm" onclick="simulateWaUserMsg('7 seater family car under 15L?')">🚐 Ask 7-Seater Recommendation</button>
+            <button class="btn btn-soft btn-sm" onclick="handoffWaToWeb()">↗ Open Hyryder on Web Showroom</button>
+            <button class="btn btn-outline btn-sm" onclick="resetWaStarter()">↺ Reset Starter Chat</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="wa-phone">
+        <div class="wa-screen">
+          <div class="wa-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="wa-avatar">M</div>
+              <div>
+                <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:5px;">
+                  MotoAI Toyota Chennai
+                  <span style="background:#25D366;color:#075E54;font-size:10px;padding:1px 5px;border-radius:999px;font-weight:800;">✓</span>
+                </div>
+                <div style="font-size:11px;opacity:0.85;">Official WhatsApp Business · Online</div>
+              </div>
+            </div>
+            <span style="font-size:11px;background:rgba(255,255,255,0.16);padding:3px 8px;border-radius:999px;">WABA</span>
+          </div>
+
+          <div class="wa-thread" id="wa-thread"></div>
+
+          <form class="wa-composer" onsubmit="sendWaComposer(event)">
+            <input id="wa-input" type="text" placeholder="Type in English, Tamil or Tanglish..." />
+            <button type="submit" class="wa-send" title="Send">➤</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= MODE 3: INTERNAL OPS CONSOLE ================= -->
+  <main id="mode-ops" class="hidden">
+    <div class="ops-shell">
+      <aside class="ops-sidebar">
+        <div class="ops-side-brand">
+          <div class="brand-mark" style="width:30px;height:30px;font-size:14px;">M</div>
+          <div>
+            <div>MotoAI Ops</div>
+            <div style="font-size:10.5px;color:#94A3B8;font-weight:500;">Chennai Single-Org</div>
+          </div>
+        </div>
+        <nav class="ops-nav">
+          <div class="ops-sec-label">Operations</div>
+          <button class="ops-nav-item active" data-opstab="overview" onclick="switchOpsTab('overview')">
+            <span>📊 Overview</span>
+          </button>
+          <button class="ops-nav-item" data-opstab="inbox" onclick="switchOpsTab('inbox')">
+            <span>💬 Live Advisor Inbox</span>
+            <span class="ops-nav-count" id="ops-badge-inbox">3</span>
+          </button>
+          <button class="ops-nav-item" data-opstab="leads" onclick="switchOpsTab('leads')">
+            <span>🧭 Lead &amp; Showroom Router</span>
+            <span class="ops-nav-count" id="ops-badge-leads">6</span>
+          </button>
+
+          <div class="ops-sec-label">Catalog &amp; Data</div>
+          <button class="ops-nav-item" data-opstab="pricing" onclick="switchOpsTab('pricing')">
+            <span>📄 PDF &amp; Price Editor</span>
+          </button>
+
+          <div class="ops-sec-label">Platform</div>
+          <button class="ops-nav-item" data-opstab="waba" onclick="switchOpsTab('waba')">
+            <span>📱 WhatsApp Setup</span>
+          </button>
+          <button class="ops-nav-item" data-opstab="team" onclick="switchOpsTab('team')">
+            <span>👥 Team &amp; Roles</span>
+          </button>
+          <button class="ops-nav-item" data-opstab="guardrails" onclick="switchOpsTab('guardrails')">
+            <span>🛡️ AI Guardrails</span>
+          </button>
+        </nav>
+
+        <div class="ops-user-card">
+          <div class="ops-avatar">L</div>
+          <div style="min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:#FFF;">Loga</div>
+            <div style="font-size:11px;color:#94A3B8;" id="sidebar-role-label">Platform Admin</div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="ops-main">
+        <div class="ops-topbar">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <h2 id="ops-screen-title" style="font-size:17px;font-weight:800;letter-spacing:-0.01em;">Overview</h2>
+            <span id="ops-role-pill" class="badge badge-brand">Full Access</span>
+          </div>
+          <div class="ops-topbar-right">
+            <input id="ops-quick-search" class="ops-search" type="text" placeholder="Quick search buyers, models..." oninput="renderActiveOpsTab()" />
+            <select id="role-preview-select" class="sort-select" onchange="onRolePreviewChange()">
+              <option value="Platform Admin">Role: Platform Admin</option>
+              <option value="Catalog & Pricing Ops">Role: Catalog &amp; Pricing Ops</option>
+              <option value="Concierge Advisor">Role: Concierge Advisor</option>
+              <option value="Dealer Coordinator">Role: Dealer Coordinator</option>
+            </select>
+            <span class="badge badge-ok">● WABA Connected</span>
+          </div>
+        </div>
+
+        <div class="ops-content" id="ops-content"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= MODALS & TOASTS ================= -->
+  <div id="breakup-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeBreakupModal()">
+    <div class="slide-over" id="breakup-slideover"></div>
+  </div>
+
+  <div id="compare-modal" class="modal-backdrop center hidden" onclick="if(event.target===this) closeCompareModal()">
+    <div class="center-modal" id="compare-modal-inner"></div>
+  </div>
+
+  <div id="team-modal" class="modal-backdrop center hidden" onclick="if(event.target===this) closeTeamModal()">
+    <div class="center-modal" style="width:min(440px,100%);" id="team-modal-inner"></div>
+  </div>
+
+  <div class="toast-wrap" id="toast-wrap"></div>
+
+  <script>
+    /* =========================================================================
+       1. REAL CHENNAI TOYOTA DEMO DATASET (Oct 2026)
+       ========================================================================= */
+    const CARS = [
+      {
+        id: 'glanza',
+        name: 'Glanza',
+        bodyType: 'Hatchback',
+        filterTags: ['hatchback'],
+        seats: '5 seats',
+        fuel: 'Petrol',
+        wait: '1–2 wks',
+        mileage: '22.3 km/l',
+        grad: ['#2563EB', '#1E40AF'],
+        svgType: 'hatchback',
+        emiBase: 16000,
+        advice: 'Zippy 1.2L city hatch with reliable Toyota service — ideal for T. Nagar & Adyar parking.',
+        variants: [
+          {
+            vid: 'glanza-g',
+            name: 'G MT / AMT',
+            ex: 779000,
+            rto: 118500,
+            ins13: 48000,
+            ins33: 63000,
+            tcs: 0,
+            reg: 7000,
+            acc: 10000,
+            onRoad13: 962500,
+            onRoad33: 977500
+          }
+        ]
+      },
+      {
+        id: 'taisor',
+        name: 'Taisor',
+        bodyType: 'Compact SUV',
+        filterTags: ['suv'],
+        seats: '5 seats',
+        fuel: 'Petrol / Turbo',
+        wait: '2 wks',
+        mileage: '21.5 km/l',
+        grad: ['#EA580C', '#9A3412'],
+        svgType: 'compact-suv',
+        emiBase: 21900,
+        advice: 'Punchy 1.0L Turbo with 190mm ground clearance — glides over Velachery speed breakers.',
+        variants: [
+          {
+            vid: 'taisor-v',
+            name: 'V Turbo AT',
+            ex: 1055000,
+            rto: 178850,
+            ins13: 56000,
+            ins33: 76000,
+            tcs: 10550,
+            reg: 8000,
+            acc: 10000,
+            onRoad13: 1318400,
+            onRoad33: 1338400
+          }
+        ]
+      },
+      {
+        id: 'hyryder',
+        name: 'Urban Cruiser Hyryder',
+        bodyType: 'SUV',
+        filterTags: ['suv', 'hybrid'],
+        seats: '5 seats',
+        fuel: 'Petrol / Strong Hybrid',
+        wait: '2–3 wks',
+        mileage: '27.9 km/l (Hybrid)',
+        grad: ['#0B6E6E', '#115E59'],
+        svgType: 'suv',
+        emiBase: 25100,
+        advice: 'OMR traffic-ku Strong Hybrid best — 27.9 km/l real city economy & whisper-quiet EV crawl!',
+        variants: [
+          {
+            vid: 'hyryder-e',
+            name: 'E MT',
+            ex: 1114000,
+            rto: 298598,
+            ins13: 64000,
+            ins33: 86000,
+            tcs: 11140,
+            reg: 9000,
+            acc: 10000,
+            onRoad13: 1506738,
+            onRoad33: 1528738
+          },
+          {
+            vid: 'hyryder-s-hybrid',
+            name: 'S Hybrid e-CVT',
+            ex: 1681000,
+            rto: 349750,
+            ins13: 81000,
+            ins33: 109000,
+            tcs: 16810,
+            reg: 9000,
+            acc: 12000,
+            onRoad13: 2149560,
+            onRoad33: 2177560
+          },
+          {
+            vid: 'hyryder-v-hybrid',
+            name: 'V Hybrid e-CVT',
+            ex: 2019000,
+            rto: 415400,
+            ins13: 93000,
+            ins33: 125000,
+            tcs: 20190,
+            reg: 9000,
+            acc: 12000,
+            onRoad13: 2568590,
+            onRoad33: 2600590
+          }
+        ]
+      },
+      {
+        id: 'rumion',
+        name: 'Rumion',
+        bodyType: 'MPV',
+        filterTags: ['mpv'],
+        seats: '7 seats',
+        fuel: 'Petrol / CNG',
+        wait: '3–4 wks',
+        mileage: '26.1 km/kg (CNG)',
+        grad: ['#4F46E5', '#3730A3'],
+        svgType: 'mpv',
+        emiBase: 22300,
+        advice: 'True 3-row 7-seater value — CNG variant keeps monthly Pondy/ECR family trips super cheap.',
+        variants: [
+          {
+            vid: 'rumion-s',
+            name: 'S MT / CNG',
+            ex: 1044000,
+            rto: 211360,
+            ins13: 59000,
+            ins33: 80000,
+            tcs: 10440,
+            reg: 8000,
+            acc: 10000,
+            onRoad13: 1342800,
+            onRoad33: 1363800
+          }
+        ]
+      },
+      {
+        id: 'hycross',
+        name: 'Innova Hycross',
+        bodyType: 'MPV',
+        filterTags: ['mpv', 'hybrid', 'premium'],
+        seats: '7–8 seats',
+        fuel: 'Petrol / Hybrid',
+        wait: '4–6 wks',
+        mileage: '23.2 km/l (Hybrid)',
+        grad: ['#334155', '#0F172A'],
+        svgType: 'mpv',
+        emiBase: 42300,
+        advice: 'Captain-seat highway king — unbeatable ride comfort for large families & outstation drives.',
+        variants: [
+          {
+            vid: 'hycross-gx',
+            name: 'GX (O) / Hybrid',
+            ex: 1994000,
+            rto: 419260,
+            ins13: 92000,
+            ins33: 128000,
+            tcs: 19940,
+            reg: 11000,
+            acc: 12000,
+            onRoad13: 2548200,
+            onRoad33: 2584200
+          }
+        ]
+      },
+      {
+        id: 'fortuner',
+        name: 'Fortuner',
+        bodyType: 'Premium SUV',
+        filterTags: ['suv', 'premium'],
+        seats: '7 seats',
+        fuel: 'Diesel 4x2',
+        wait: '3–5 wks',
+        mileage: '14.2 km/l',
+        grad: ['#1E293B', '#020617'],
+        svgType: 'premium-suv',
+        emiBase: 74500,
+        advice: 'Unmatched road presence & 500Nm diesel torque with legendary resale value in Tamil Nadu.',
+        variants: [
+          {
+            vid: 'fortuner-4x2',
+            name: '2.8 Diesel 4x2 AT',
+            ex: 3537000,
+            rto: 742130,
+            ins13: 145000,
+            ins33: 201000,
+            tcs: 35370,
+            reg: 12000,
+            acc: 15000,
+            onRoad13: 4486500,
+            onRoad33: 4542500
+          }
+        ]
+      }
+    ];
+
+    /* =========================================================================
+       2. I18N COPY (EN / தமிழ் / TANGLISH)
+       ========================================================================= */
+    const I18N = {
+      en: {
+        trust: '🔒 100% Anonymous On-Road Prices — Zero spam calls. Share WhatsApp only when you want a test drive.',
+        heroTitle: 'Find the right car for your family — with exact Chennai On-Road prices.',
+        heroSub: 'Compare real 1+3 & 3+3 insurance breakups, honest mileage feedback for OMR/Velachery traffic, and book a home test drive only when you\'re ready.',
+        searchPlaceholder: 'Try: Automatic Hybrid SUV under ₹22L for Chennai city...',
+        waStarterGreeting: 'OMR traffic-ku Strong Hybrid best — 27.9 km/l real mileage! For a 5-member family under ₹20L–₹21.5L, these 3 verified Chennai options fit best:'
+      },
+      ta: {
+        trust: '🔒 100% அடையாளம் மறைக்கப்பட்ட ஆன்-ரோடு விலை — தேவையற்ற அழைப்புகள் இல்லை. டெஸ்ட் டிரைவ் வேண்டும்போது மட்டும் WhatsApp பகிருங்கள்.',
+        heroTitle: 'உங்கள் குடும்பத்திற்கு ஏற்ற சரியான காரை — துல்லியமான சென்னை ஆன்-ரோடு விலையுடன் கண்டறியுங்கள்.',
+        heroSub: '1+3 மற்றும் 3+3 இன்சூரன்ஸ் விவரங்களை ஒப்பிட்டு, OMR போக்குவரத்திற்கான உண்மையான மைலேஜ் ஆலோசனையுடன் வீட்டிலேயே டெஸ்ட் டிரைவ் பதிவு செய்யுங்கள்.',
+        searchPlaceholder: 'தேடுங்கள்: ₹22L-க்குள் சென்னைக்கு ஏற்ற Automatic Hybrid SUV...',
+        waStarterGreeting: 'OMR போக்குவரத்துக்கு Strong Hybrid மிகச் சிறந்தது — லிட்டருக்கு 27.9 கி.மீ! 5 பேர் கொண்ட குடும்பத்திற்கு ₹20L பட்ஜெட்டில் சிறந்த 3 கார்கள்:'
+      },
+      tanglish: {
+        trust: '🔒 100% Anonymous On-Road Price — No spam calls! Test drive venum-na mattum WhatsApp number kudunga.',
+        heroTitle: 'Unga family-ku correct-ana car — exact Chennai On-Road price-oda kandupidinga.',
+        heroSub: '1+3 & 3+3 insurance breakup compare pannunga, OMR traffic-ku honest mileage advice vangunga, ready-na veetlaye test drive book pannunga.',
+        searchPlaceholder: 'Try: OMR traffic-ku ₹22L budget la Automatic Hybrid SUV...',
+        waStarterGreeting: 'OMR traffic-ku Strong Hybrid best — 27.9 km/l kedaikkum! 5 per family & ₹20L budget-ku indha 3 Chennai verified options super-a irukkum:'
+      }
+    };
+
+    /* =========================================================================
+       3. APP STATE
+       ========================================================================= */
+    const state = {
+      mode: 'customer',
+      lang: 'en',
+      filter: 'all',
+      signedIn: false,
+      compareIds: [],
+      customerChatOpen: false,
+      waContinued: false,
+      customerMsgs: [
+        { role: 'ai', text: 'Vanakkam! Ask me anything about Chennai Toyota On-Road prices (Oct 2026), 1+3 vs 3+3 insurance, or best family pick.' }
+      ],
+      breakup: { carId: 'hyryder', variantIdx: 0, insMode: '1+3', downPct: 20, tenureYears: 5, rate: 8.85, bookedSlot: null },
+      waMsgs: [],
+      waInlineInsMode: '1+3',
+      waBookedSlot: null,
+      opsTab: 'overview',
+      opsRole: 'Platform Admin',
+      selectedThreadId: 't1',
+      inboxTriage: 'all',
+      wabaMode: 'live',
+      showToken: false,
+      llmModel: 'Claude Sonnet 4',
+      langAutoDetect: true,
+      guardrails: {
+        sqlOnly: true,
+        blockBankUpi: true,
+        deliveryDisclaimer: true,
+        zeroPhoneWall: true
+      }
+    };
+
+    /* =========================================================================
+       4. FORMATTERS & INLINE SVG CAR SILHOUETTES
+       ========================================================================= */
+    function formatINR(n) {
+      return '₹' + Math.round(n).toLocaleString('en-IN');
+    }
+
+    function getCarSvg(type) {
+      const common = 'fill="rgba(255,255,255,0.92)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"';
+      if (type === 'hatchback') {
+        return `<svg viewBox="0 0 260 110" width="215" height="92" aria-hidden="true">
+          <path d="M28 74 L38 48 Q52 28 96 26 L158 26 Q192 27 210 47 L232 54 Q240 58 240 69 L240 76 L28 76 Z" ${common}/>
+          <path d="M88 33 L154 33 Q178 34 194 48 L72 48 Q77 35 88 33 Z" fill="rgba(15,23,42,0.72)"/>
+          <circle cx="72" cy="77" r="17" fill="#0F172A" stroke="#E2E8F0" stroke-width="3"/>
+          <circle cx="72" cy="77" r="7" fill="#94A3B8"/>
+          <circle cx="195" cy="77" r="17" fill="#0F172A" stroke="#E2E8F0" stroke-width="3"/>
+          <circle cx="195" cy="77" r="7" fill="#94A3B8"/>
+        </svg>`;
+      }
+      if (type === 'compact-suv') {
+        return `<svg viewBox="0 0 260 110" width="215" height="92" aria-hidden="true">
+          <path d="M24 73 L32 45 Q44 26 92 24 L162 24 Q194 26 212 44 L236 52 Q243 56 243 68 L243 74 L24 74 Z" ${common}/>
+          <path d="M84 31 L158 31 Q182 32 198 46 L70 46 Q74 33 84 31 Z" fill="rgba(15,23,42,0.75)"/>
+          <rect x="30" y="71" width="206" height="4" rx="2" fill="rgba(15,23,42,0.5)"/>
+          <circle cx="69" cy="77" r="18" fill="#0F172A" stroke="#E2E8F0" stroke-width="3"/>
+          <circle cx="69" cy="77" r="8" fill="#CBD5E1"/>
+          <circle cx="197" cy="77" r="18" fill="#0F172A" stroke="#E2E8F0" stroke-width="3"/>
+          <circle cx="197" cy="77" r="8" fill="#CBD5E1"/>
+        </svg>`;
+      }
+      if (type === 'mpv') {
+        return `<svg viewBox="0 0 260 110" width="222" height="92" aria-hidden="true">
+          <path d="M22 74 L28 40 Q36 22 72 21 L188 21 Q212 22 224 44 L239 53 Q244 58 244 74 Z" ${common}/>
+          <path d="M62 28 L184 28 Q202 29 212 45 L50 45 Q53 31 62 28 Z" fill="rgba(15,23,42,0.74)"/>
+          <line x1="124" y1="27" x2="124" y2="46" stroke="rgba(255,255,255,0.55)" stroke-width="3"/>
+          <circle cx="68" cy="77" r="17" fill="#0F172A" stroke="#E2E8F0" stroke-width="3"/>
+          <circle cx="68" cy="77" r="7.5" fill="#94A3B8"/>
+          <circle cx="199" cy="77" r="17" fill="#0F172A" stroke="#E2E8F0" stroke-width="3"/>
+          <circle cx="199" cy="77" r="7.5" fill="#94A3B8"/>
+        </svg>`;
+      }
+      if (type === 'premium-suv') {
+        return `<svg viewBox="0 0 260 110" width="224" height="92" aria-hidden="true">
+          <path d="M20 72 L26 38 Q35 20 76 19 L178 19 Q204 20 218 40 L240 48 Q246 53 246 68 L246 72 Z" ${common}/>
+          <path d="M72 26 L174 26 Q194 27 206 42 L58 42 Q61 28 72 26 Z" fill="rgba(15,23,42,0.78)"/>
+          <line x1="126" y1="25" x2="126" y2="43" stroke="rgba(255,255,255,0.5)" stroke-width="3"/>
+          <circle cx="68" cy="76" r="20" fill="#0F172A" stroke="#E2E8F0" stroke-width="3.5"/>
+          <circle cx="68" cy="76" r="9" fill="#CBD5E1"/>
+          <circle cx="198" cy="76" r="20" fill="#0F172A" stroke="#E2E8F0" stroke-width="3.5"/>
+          <circle cx="198" cy="76" r="9" fill="#CBD5E1"/>
+        </svg>`;
+      }
+      // suv (Hyryder)
+      return `<svg viewBox="0 0 260 110" width="220" height="92" aria-hidden="true">
+        <path d="M22 73 L30 42 Q42 22 86 21 L170 21 Q198 22 214 42 L238 50 Q244 55 244 68 L244 74 Z" ${common}/>
+        <path d="M78 28 L166 28 Q188 29 202 44 L66 44 Q69 30 78 28 Z" fill="rgba(15,23,42,0.74)"/>
+        <line x1="122" y1="27" x2="122" y2="45" stroke="rgba(255,255,255,0.5)" stroke-width="3"/>
+        <circle cx="69" cy="76" r="18.5" fill="#0F172A" stroke="#E2E8F0" stroke-width="3"/>
+        <circle cx="69" cy="76" r="8" fill="#CBD5E1"/>
+        <circle cx="198" cy="76" r="18.5" fill="#0F172A" stroke="#E2E8F0" stroke-width="3"/>
+        <circle cx="198" cy="76" r="8" fill="#CBD5E1"/>
+      </svg>`;
+    }
+
+    function showToast(msg) {
+      const wrap = document.getElementById('toast-wrap');
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.textContent = msg;
+      wrap.appendChild(el);
+      setTimeout(() => { el.remove(); }, 3200);
+    }
+
+    /* =========================================================================
+       5. MODE & LANGUAGE SWITCHERS
+       ========================================================================= */
+    function switchMode(mode) {
+      state.mode = mode;
+      ['customer', 'chat', 'ops'].forEach(m => {
+        document.getElementById('mode-' + m).classList.toggle('hidden', m !== mode);
+      });
+      document.querySelectorAll('.proto-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      if (mode === 'ops') renderActiveOpsTab();
+      if (mode === 'chat') renderWaThread();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setLang(lang) {
+      state.lang = lang;
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === lang);
+      });
+      const copy = I18N[lang];
+      document.getElementById('trust-banner-text').textContent = copy.trust;
+      document.getElementById('hero-headline').textContent = copy.heroTitle;
+      document.getElementById('hero-sub').textContent = copy.heroSub;
+      document.getElementById('hero-search-input').placeholder = copy.searchPlaceholder;
+      if (state.waMsgs.length > 0 && state.waMsgs[1] && state.waMsgs[1].isStarter) {
+        state.waMsgs[1].text = copy.waStarterGreeting;
+        renderWaThread();
+      }
+      showToast('Language switched to ' + (lang === 'en' ? 'English' : lang === 'ta' ? 'தமிழ்' : 'Tanglish'));
+    }
+
+    function toggleGoogleSignIn() {
+      state.signedIn = !state.signedIn;
+      const btn = document.getElementById('google-signin-btn');
+      if (state.signedIn) {
+        btn.innerHTML = `<span style="width:20px;height:20px;border-radius:999px;background:var(--brand);color:#FFF;display:grid;place-items:center;font-size:11px;font-weight:800;">R</span><span>Ravi K. · Saved (2)</span>`;
+        showToast('Signed in as Ravi K. (Demo) — saved shortlists synced');
+      } else {
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.7-5.5 3.7-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z"/></svg><span>Sign in with Google</span>`;
+      }
+    }
+
+    /* =========================================================================
+       6. MODE 1: SHOWROOM RENDERING, BREAKUP & COMPARE
+       ========================================================================= */
+    function setFilter(f) {
+      state.filter = f;
+      document.querySelectorAll('.filter-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.filter === f);
+      });
+      renderShowroom();
+    }
+
+    function renderShowroom() {
+      const sort = document.getElementById('sort-select').value;
+      let list = CARS.filter(c => state.filter === 'all' || c.filterTags.includes(state.filter));
+      list.sort((a, b) => {
+        const pa = a.variants[0].onRoad13;
+        const pb = b.variants[0].onRoad13;
+        return sort === 'low' ? pa - pb : pb - pa;
+      });
+
+      const grid = document.getElementById('cars-grid');
+      grid.innerHTML = list.map(car => {
+        const v = car.variants[0];
+        const checked = state.compareIds.includes(car.id) ? 'checked' : '';
+        return `
+          <article class="car-card">
+            <div class="car-stage" style="background: linear-gradient(135deg, ${car.grad[0]}, ${car.grad[1]});">
+              <span class="wait-pill">⏱ Wait: ${car.wait}</span>
+              <label class="compare-check">
+                <input type="checkbox" ${checked} onchange="toggleCompare('${car.id}')" />
+                <span>Compare</span>
+              </label>
+              ${getCarSvg(car.svgType)}
+            </div>
+            <div class="car-body">
+              <div class="car-top-meta">
+                <h3 class="car-name">${car.name}</h3>
+                <span class="badge badge-slate">${car.bodyType}</span>
+              </div>
+              <div class="car-sub">${v.name}${car.variants.length > 1 ? ` · +${car.variants.length - 1} variants` : ''}</div>
+
+              <div class="car-tags">
+                <span class="badge badge-brand">${car.fuel}</span>
+                <span class="badge badge-slate">${car.seats}</span>
+                <span class="badge badge-ok">${car.mileage}</span>
+              </div>
+
+              <div class="car-price-block">
+                <div class="car-price-label">Chennai On-Road (1+3 Ins.)</div>
+                <div class="car-price-row">
+                  <span class="car-price num">${formatINR(v.onRoad13)}</span>
+                  <span class="car-emi num">EMI ${formatINR(car.emiBase)}/mo</span>
+                </div>
+                <div class="car-ex num">Ex-Showroom ${formatINR(v.ex)} · 3+3 Ins: ${formatINR(v.onRoad33)}</div>
+              </div>
+
+              <div class="car-actions">
+                <button class="btn btn-primary btn-sm" onclick="openBreakupModal('${car.id}')">View Breakup</button>
+                <button class="btn btn-soft btn-sm" onclick="askAiAboutCar('${car.id}')">✨ Ask AI</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function toggleCompare(carId) {
+      const idx = state.compareIds.indexOf(carId);
+      if (idx >= 0) {
+        state.compareIds.splice(idx, 1);
+      } else {
+        if (state.compareIds.length >= 3) {
+          showToast('You can compare up to 3 cars at once');
+          renderShowroom();
+          return;
+        }
+        state.compareIds.push(carId);
+      }
+      document.getElementById('compare-count').textContent = state.compareIds.length;
+    }
+
+    function openCompareModal() {
+      const ids = state.compareIds.length ? state.compareIds : ['hyryder', 'rumion', 'taisor'];
+      const selected = ids.map(id => CARS.find(c => c.id === id)).filter(Boolean);
+      const modal = document.getElementById('compare-modal');
+      document.getElementById('compare-modal-inner').innerHTML = `
+        <div class="modal-head">
+          <div>
+            <h3 style="font-size:17px;font-weight:800;">Side-by-Side Chennai On-Road Compare</h3>
+            <div style="font-size:12px;color:var(--muted);">${state.compareIds.length ? 'Your selected models' : 'Popular family comparison (select checkboxes on cards to customize)'}</div>
+          </div>
+          <button onclick="closeCompareModal()" class="btn btn-outline btn-sm">✕ Close</button>
+        </div>
+        <div class="modal-body" style="overflow-x:auto;">
+          <table class="ops-table">
+            <thead>
+              <tr>
+                <th>Specification</th>
+                ${selected.map(c => `<th>${c.name}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Body &amp; Seats</td>${selected.map(c => `<td>${c.bodyType} · ${c.seats}</td>`).join('')}</tr>
+              <tr><td>Fuel / Powertrain</td>${selected.map(c => `<td>${c.fuel}</td>`).join('')}</tr>
+              <tr><td>Ex-Showroom</td>${selected.map(c => `<td class="num">${formatINR(c.variants[0].ex)}</td>`).join('')}</tr>
+              <tr><td><strong>On-Road (1+3 Ins.)</strong></td>${selected.map(c => `<td class="num" style="font-weight:800;color:var(--brand);">${formatINR(c.variants[0].onRoad13)}</td>`).join('')}</tr>
+              <tr><td>On-Road (3+3 Ins.)</td>${selected.map(c => `<td class="num">${formatINR(c.variants[0].onRoad33)}</td>`).join('')}</tr>
+              <tr><td>Est. Monthly EMI</td>${selected.map(c => `<td class="num">${formatINR(c.emiBase)}/mo</td>`).join('')}</tr>
+              <tr><td>Chennai Wait Time</td>${selected.map(c => `<td><span class="badge badge-accent">${c.wait}</span></td>`).join('')}</tr>
+              <tr><td>MotoAI Take</td>${selected.map(c => `<td style="font-size:12px;color:var(--ink-2);">${c.advice}</td>`).join('')}</tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function closeCompareModal() {
+      document.getElementById('compare-modal').classList.add('hidden');
+    }
+
+    function openBreakupModal(carId, variantIdx = 0) {
+      state.breakup.carId = carId;
+      state.breakup.variantIdx = variantIdx;
+      state.breakup.bookedSlot = null;
+      renderBreakupModal();
+      document.getElementById('breakup-modal').classList.remove('hidden');
+    }
+
+    function closeBreakupModal() {
+      document.getElementById('breakup-modal').classList.add('hidden');
+    }
+
+    function renderBreakupModal() {
+      const car = CARS.find(c => c.id === state.breakup.carId) || CARS[0];
+      const v = car.variants[state.breakup.variantIdx] || car.variants[0];
+      const is33 = state.breakup.insMode === '3+3';
+      const ins = is33 ? v.ins33 : v.ins13;
+      const total = is33 ? v.onRoad33 : v.onRoad13;
+
+      const downAmt = Math.round(total * (state.breakup.downPct / 100));
+      const principal = total - downAmt;
+      const r = state.breakup.rate / 12 / 100;
+      const n = state.breakup.tenureYears * 12;
+      const emi = Math.round((principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1));
+
+      const variantTabs = car.variants.length > 1
+        ? `<div style="margin-bottom:14px;">
+             <div style="font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:6px;">SELECT VARIANT</div>
+             <div style="display:flex;flex-wrap:wrap;gap:6px;">
+               ${car.variants.map((vr, i) => `
+                 <button class="btn btn-sm ${i === state.breakup.variantIdx ? 'btn-primary' : 'btn-outline'}"
+                   onclick="state.breakup.variantIdx=${i};renderBreakupModal()">${vr.name}</button>
+               `).join('')}
+             </div>
+           </div>`
+        : '';
+
+      document.getElementById('breakup-slideover').innerHTML = `
+        <div class="modal-head">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--brand);">CHENNAI OCT 2026 ON-ROAD BREAKUP</div>
+            <h3 style="font-size:19px;font-weight:800;">Toyota ${car.name} · ${v.name}</h3>
+          </div>
+          <button onclick="closeBreakupModal()" class="btn btn-outline btn-sm">✕</button>
+        </div>
+        <div class="modal-body">
+          ${variantTabs}
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:13px;font-weight:700;color:var(--ink-2);">Insurance Plan</span>
+            <div class="seg-toggle">
+              <button class="seg-btn ${!is33 ? 'active' : ''}" onclick="state.breakup.insMode='1+3';renderBreakupModal()">1+3 Yr (Standard)</button>
+              <button class="seg-btn ${is33 ? 'active' : ''}" onclick="state.breakup.insMode='3+3';renderBreakupModal()">3+3 Yr Zero-Dep</button>
+            </div>
+          </div>
+
+          <table class="breakup-table">
+            <tr><td>Ex-Showroom (Chennai)</td><td>${formatINR(v.ex)}</td></tr>
+            <tr><td>TN Road Tax / RTO Registration</td><td>${formatINR(v.rto)}</td></tr>
+            <tr><td>Insurance (${is33 ? '3 Yr OD + 3 Yr TP' : '1 Yr OD + 3 Yr TP'})</td><td>${formatINR(ins)}</td></tr>
+            <tr><td>TCS (1% if Ex-Showroom ≥ ₹10L)</td><td>${formatINR(v.tcs)}</td></tr>
+            <tr><td>FASTag, HSRP &amp; Temp Reg.</td><td>${formatINR(v.reg)}</td></tr>
+            <tr><td>Standard Accessories Kit</td><td>${formatINR(v.acc)}</td></tr>
+            <tr class="breakup-total">
+              <td>Total Chennai On-Road</td>
+              <td>${formatINR(total)}</td>
+            </tr>
+          </table>
+
+          <div class="emi-box">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;">
+              <div>
+                <div style="font-size:11.5px;font-weight:700;color:var(--muted);">ESTIMATED MONTHLY EMI</div>
+                <div class="num" style="font-size:24px;font-weight:800;color:var(--ink);">${formatINR(emi)}<span style="font-size:13px;font-weight:600;color:var(--muted);">/mo</span></div>
+              </div>
+              <div style="text-align:right;font-size:12px;color:var(--ink-2);" class="num">
+                Loan: ${formatINR(principal)}<br/>Down: ${formatINR(downAmt)}
+              </div>
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-label"><span>Down Payment (${state.breakup.downPct}%)</span><span class="num">${formatINR(downAmt)}</span></div>
+              <input type="range" min="10" max="60" step="5" value="${state.breakup.downPct}" oninput="state.breakup.downPct=+this.value;renderBreakupModal()" />
+            </div>
+            <div class="slider-row">
+              <div class="slider-label"><span>Loan Tenure</span><span>${state.breakup.tenureYears} Years</span></div>
+              <input type="range" min="1" max="7" step="1" value="${state.breakup.tenureYears}" oninput="state.breakup.tenureYears=+this.value;renderBreakupModal()" />
+            </div>
+            <div class="slider-row">
+              <div class="slider-label"><span>Interest Rate</span><span>${state.breakup.rate.toFixed(2)}% p.a.</span></div>
+              <input type="range" min="7.5" max="11.5" step="0.25" value="${state.breakup.rate}" oninput="state.breakup.rate=+this.value;renderBreakupModal()" />
+            </div>
+          </div>
+
+          <div style="margin-top:18px;border:1px solid var(--border);border-radius:14px;padding:15px;">
+            <div style="font-weight:700;font-size:14px;">🚗 Book Home / Showroom Test Drive</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">Epic Toyota Guindy / Lanson Toyota OMR · Zero spam guarantee</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+              ${['Tomorrow 10 AM', 'Tomorrow 4 PM', 'Sat 11 AM'].map(slot => `
+                <button class="btn btn-sm ${state.breakup.bookedSlot === slot ? 'btn-primary' : 'btn-outline'}"
+                  onclick="state.breakup.bookedSlot='${slot}';showToast('Test drive slot selected: ${slot} · ${car.name}');renderBreakupModal()">
+                  ${state.breakup.bookedSlot === slot ? '✓ ' : ''}${slot}
+                </button>
+              `).join('')}
+            </div>
+            ${state.breakup.bookedSlot ? `<div class="badge badge-ok" style="margin-top:10px;">✓ Reserved ${state.breakup.bookedSlot} for ${car.name} (${v.name})</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       7. CUSTOMER PLATFORM AI SEARCH & FLOATING CHAT DRAWER
+       ========================================================================= */
+    function toggleCustomerChat(force) {
+      state.customerChatOpen = typeof force === 'boolean' ? force : !state.customerChatOpen;
+      document.getElementById('customer-chat-drawer').classList.toggle('hidden', !state.customerChatOpen);
+      document.getElementById('wa-continued-banner').classList.toggle('hidden', !state.waContinued);
+      if (state.customerChatOpen) renderCustomerChatMsgs();
+    }
+
+    function renderCustomerChatMsgs() {
+      const box = document.getElementById('customer-chat-msgs');
+      box.innerHTML = state.customerMsgs.map(m => {
+        const cardsHtml = (m.cars || []).map(c => `
+          <div style="margin-top:8px;padding:9px;border:1px solid var(--border);border-radius:10px;background:#F8FAFC;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div>
+              <div style="font-weight:700;font-size:12.5px;">${c.name}</div>
+              <div class="num" style="font-size:12px;color:var(--brand);font-weight:700;">${formatINR(c.variants[0].onRoad13)} On-Road</div>
+            </div>
+            <button class="btn btn-soft btn-sm" onclick="openBreakupModal('${c.id}')">Breakup</button>
+          </div>
+        `).join('');
+        return `<div class="msg-bubble ${m.role === 'user' ? 'msg-user' : 'msg-ai'}">${m.text}${cardsHtml}</div>`;
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function buildSmartAiReply(query) {
+      const q = query.toLowerCase();
+      if (/(upi|bank|account|ifsc|gpay|paytm|transfer|payment link)/i.test(q)) {
+        return {
+          text: '🛡️ Security Guardrail: MotoAI never shares bank account numbers, UPI IDs, or payment links. All vehicle booking payments happen directly at the authorized Toyota showroom (Epic / Lanson Toyota) with an official receipt.',
+          cars: []
+        };
+      }
+      if (q.includes('hyryder')) {
+        const hy = CARS.find(c => c.id === 'hyryder');
+        return {
+          text: 'Hyryder Chennai On-Road (1+3 Ins.): E MT ₹15,06,738 · S Hybrid e-CVT ₹21,49,560 · V Hybrid e-CVT ₹25,68,590. Wait time is 2–3 wks.',
+          cars: [hy]
+        };
+      }
+      if (q.includes('hybrid') || q.includes('omr') || q.includes('22l')) {
+        return {
+          text: 'For OMR stop-and-go traffic, Strong Hybrid saves ~40% fuel (27.9 km/l on Hyryder). Best picks under ₹22L–₹26L:',
+          cars: [CARS.find(c => c.id === 'hyryder'), CARS.find(c => c.id === 'hycross')]
+        };
+      }
+      if (q.includes('7') || q.includes('mpv') || q.includes('family')) {
+        return {
+          text: 'For 7-seater family comfort in Chennai: Rumion (₹13,42,800) for budget CNG/petrol value, or Innova Hycross (₹25,48,200) for captain-seat highway luxury.',
+          cars: [CARS.find(c => c.id === 'rumion'), CARS.find(c => c.id === 'hycross')]
+        };
+      }
+      if (q.includes('15l') || q.includes('under')) {
+        return {
+          text: 'Under ₹15L Chennai On-Road (1+3 Ins.), you have 3 solid options: Glanza (₹9.63L), Taisor Turbo (₹13.18L), and Rumion 7-seater (₹13.43L).',
+          cars: [CARS.find(c => c.id === 'glanza'), CARS.find(c => c.id === 'taisor'), CARS.find(c => c.id === 'rumion')]
+        };
+      }
+      return {
+        text: 'Based on verified Oct 2026 Chennai prices, here are the top Toyota matches you can inspect with full RTO & insurance breakups:',
+        cars: [CARS.find(c => c.id === 'hyryder'), CARS.find(c => c.id === 'taisor')]
+      };
+    }
+
+    function handleHeroSearch(e) {
+      e.preventDefault();
+      const input = document.getElementById('hero-search-input');
+      const q = input.value.trim() || 'Automatic Hybrid SUV under ₹22L for Chennai city';
+      runPromptChip(q);
+    }
+
+    function runPromptChip(text) {
+      document.getElementById('hero-search-input').value = text;
+      state.customerMsgs.push({ role: 'user', text });
+      const reply = buildSmartAiReply(text);
+      state.customerMsgs.push({ role: 'ai', text: reply.text, cars: reply.cars });
+      toggleCustomerChat(true);
+    }
+
+    function askAiAboutCar(carId) {
+      const car = CARS.find(c => c.id === carId);
+      state.customerMsgs.push({ role: 'user', text: `Tell me Chennai on-road price and honest take on ${car.name}` });
+      state.customerMsgs.push({
+        role: 'ai',
+        text: `${car.name} (${car.variants[0].name}): ${formatINR(car.variants[0].onRoad13)} On-Road (1+3) | Wait: ${car.wait}. ${car.advice}`,
+        cars: [car]
+      });
+      toggleCustomerChat(true);
+    }
+
+    function sendCustomerChat(e) {
+      e.preventDefault();
+      const inp = document.getElementById('customer-chat-input');
+      const txt = inp.value.trim();
+      if (!txt) return;
+      inp.value = '';
+      state.customerMsgs.push({ role: 'user', text: txt });
+      const reply = buildSmartAiReply(txt);
+      state.customerMsgs.push({ role: 'ai', text: reply.text, cars: reply.cars });
+      renderCustomerChatMsgs();
+    }
+
+    /* =========================================================================
+       8. MODE 2: WHATSAPP <-> WEB RICH AI CHAT
+       ========================================================================= */
+    function resetWaStarter() {
+      state.waBookedSlot = null;
+      state.waInlineInsMode = '1+3';
+      state.waMsgs = [
+        {
+          type: 'user',
+          text: '5 per family, Chennai city + weekend highway, ₹20L budget. Honest recommendation sollunga.',
+          time: '10:14 AM'
+        },
+        {
+          type: 'ai',
+          isStarter: true,
+          text: I18N[state.lang].waStarterGreeting,
+          time: '10:14 AM',
+          carousel: [
+            { carId: 'hyryder', vIdx: 0, title: 'Hyryder E MT', tag: 'Petrol · 5 Seats', price: 1506738, grad: ['#0B6E6E', '#115E59'], svg: 'suv' },
+            { carId: 'hyryder', vIdx: 1, title: 'Hyryder S Hybrid', tag: 'Strong Hybrid · 27.9 km/l', price: 2149560, grad: ['#0F766E', '#134E4A'], svg: 'suv' },
+            { carId: 'rumion', vIdx: 0, title: 'Rumion S CNG', tag: '7 Seats · Family MPV', price: 1342800, grad: ['#4F46E5', '#3730A3'], svg: 'mpv' }
+          ]
+        }
+      ];
+      renderWaThread();
+    }
+
+    function renderWaThread() {
+      const box = document.getElementById('wa-thread');
+      box.innerHTML = state.waMsgs.map((m, idx) => {
+        if (m.type === 'user') {
+          return `<div class="wa-msg out">${m.text}<span class="wa-time">${m.time} ✓✓</span></div>`;
+        }
+        if (m.type === 'breakup') {
+          const car = CARS.find(c => c.id === m.carId) || CARS[2];
+          const v = car.variants[m.vIdx || 0] || car.variants[0];
+          const is33 = state.waInlineInsMode === '3+3';
+          const ins = is33 ? v.ins33 : v.ins13;
+          const total = is33 ? v.onRoad33 : v.onRoad13;
+          return `
+            <div class="wa-breakup-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                <div>
+                  <div style="font-size:10.5px;font-weight:700;color:var(--wa);">CHENNAI ON-ROAD BREAKUP</div>
+                  <div style="font-size:14px;font-weight:800;">${car.name} · ${v.name}</div>
+                </div>
+                <div class="seg-toggle">
+                  <button class="seg-btn ${!is33 ? 'active' : ''}" style="padding:3px 7px;font-size:11px;" onclick="state.waInlineInsMode='1+3';renderWaThread()">1+3</button>
+                  <button class="seg-btn ${is33 ? 'active' : ''}" style="padding:3px 7px;font-size:11px;" onclick="state.waInlineInsMode='3+3';renderWaThread()">3+3</button>
+                </div>
+              </div>
+              <table class="breakup-table" style="font-size:12px;margin-top:6px;">
+                <tr><td>Ex-Showroom</td><td>${formatINR(v.ex)}</td></tr>
+                <tr><td>TN RTO + TCS</td><td>${formatINR(v.rto + v.tcs)}</td></tr>
+                <tr><td>Insurance (${state.waInlineInsMode})</td><td>${formatINR(ins)}</td></tr>
+                <tr><td>Reg + Accessories</td><td>${formatINR(v.reg + v.acc)}</td></tr>
+                <tr class="breakup-total"><td style="font-size:13.5px;">On-Road Total</td><td style="font-size:14px;">${formatINR(total)}</td></tr>
+              </table>
+
+              <div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);">
+                <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;">Book Test Drive (1-Tap Slot):</div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                  ${['Tomorrow 10 AM', 'Tomorrow 4 PM', 'Sat 11 AM'].map(s => `
+                    <button class="btn btn-sm ${state.waBookedSlot === s ? 'btn-wa' : 'btn-outline'}" style="padding:4px 8px;font-size:11px;"
+                      onclick="state.waBookedSlot='${s}';showToast('WhatsApp test drive booked: ${s}');renderWaThread()">
+                      ${state.waBookedSlot === s ? '✓ ' : ''}${s}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <button class="btn btn-primary btn-sm" style="width:100%;margin-top:10px;" onclick="handoffWaToWeb('${car.id}', ${m.vIdx || 0})">
+                Open on MotoAI Website ↗
+              </button>
+            </div>
+          `;
+        }
+        const carouselHtml = m.carousel ? `
+          <div class="wa-carousel">
+            ${m.carousel.map(c => `
+              <div class="wa-car-card">
+                <div class="wa-car-head" style="background:linear-gradient(135deg,${c.grad[0]},${c.grad[1]});">
+                  ${getCarSvg(c.svg)}
+                </div>
+                <div class="wa-car-body">
+                  <div style="font-weight:800;font-size:13px;">${c.title}</div>
+                  <div style="font-size:11px;color:var(--muted);">${c.tag}</div>
+                  <div class="num" style="font-size:14px;font-weight:800;color:var(--wa);margin:5px 0;">${formatINR(c.price)}</div>
+                  <button class="btn btn-wa btn-sm" style="width:100%;padding:5px 8px;font-size:11.5px;" onclick="appendWaPriceBreakup('${c.carId}', ${c.vIdx})">
+                    Price Breakup
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : '';
+        return `
+          <div class="wa-msg in">${m.text}<span class="wa-time">${m.time}</span></div>
+          ${carouselHtml}
+        `;
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function appendWaPriceBreakup(carKey, vIdx = 0) {
+      const carId = carKey === 'hyryder-e' ? 'hyryder' : carKey;
+      state.waMsgs.push({ type: 'breakup', carId, vIdx });
+      renderWaThread();
+    }
+
+    function handoffWaToWeb(carId = 'hyryder', vIdx = 0) {
+      state.waContinued = true;
+      state.customerMsgs.push({
+        role: 'ai',
+        text: '🔗 Synced from WhatsApp! Showing your exact Chennai Hyryder breakup & live EMI calculator.'
+      });
+      switchMode('customer');
+      openBreakupModal(carId, vIdx);
+      toggleCustomerChat(true);
+      showToast('Handoff complete: Continued from WhatsApp on MotoAI Web');
+    }
+
+    function simulateWaUserMsg(txt) {
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      state.waMsgs.push({ type: 'user', text: txt, time });
+      const reply = buildSmartAiReply(txt);
+      const carousel = (reply.cars || []).map(c => ({
+        carId: c.id,
+        vIdx: 0,
+        title: c.name,
+        tag: `${c.fuel} · ${c.seats}`,
+        price: c.variants[0].onRoad13,
+        grad: c.grad,
+        svg: c.svgType
+      }));
+      state.waMsgs.push({ type: 'ai', text: reply.text, time, carousel: carousel.length ? carousel : null });
+      renderWaThread();
+    }
+
+    function sendWaComposer(e) {
+      e.preventDefault();
+      const inp = document.getElementById('wa-input');
+      const txt = inp.value.trim();
+      if (!txt) return;
+      inp.value = '';
+      simulateWaUserMsg(txt);
+    }
+
+    /* =========================================================================
+       9. MODE 3: INTERNAL OPS CONSOLE DATA & 7 TABS
+       ========================================================================= */
+    const OPS_THREADS = [
+      {
+        id: 't1',
+        name: 'Ravi Kumar',
+        channel: 'WhatsApp',
+        status: 'Test-Drive Ready',
+        car: 'Hyryder S Hybrid',
+        locality: 'Velachery, Chennai',
+        budget: '₹21.5L',
+        family: '5 members',
+        lang: 'Tanglish',
+        phone: '+91 98401 44210',
+        botPaused: false,
+        handoffSent: false,
+        msgs: [
+          { from: 'buyer', text: 'Vanakkam! Hyryder S Hybrid on-road exact-a evlo varum? Velachery home test drive possible-a?' },
+          { from: 'ai', text: 'Vanakkam Ravi! Chennai On-Road for Hyryder S Hybrid e-CVT is ₹21,49,560 (1+3 Ins.). Yes, home test drive from Epic Toyota Guindy is available tomorrow 10 AM or 4 PM.' },
+          { from: 'buyer', text: 'Tomorrow 4 PM fix pannunga. White color prefer panren.' }
+        ]
+      },
+      {
+        id: 't2',
+        name: 'Priya S',
+        channel: 'Web',
+        status: 'AI Stuck',
+        car: 'Glanza G AMT',
+        locality: 'Anna Nagar',
+        budget: '₹10L',
+        family: '3 members',
+        lang: 'English',
+        phone: '+91 98842 19304',
+        botPaused: true,
+        handoffSent: false,
+        msgs: [
+          { from: 'buyer', text: 'Can I transfer my existing 50% NCB from my old WagonR insurance directly onto the new Glanza?' },
+          { from: 'ai', text: 'Handing over to a MotoAI Concierge Advisor for exact NCB endorsement verification.' }
+        ]
+      },
+      {
+        id: 't3',
+        name: 'Karthik M',
+        channel: 'WhatsApp',
+        status: 'WhatsApp',
+        car: 'Innova Hycross',
+        locality: 'Adyar',
+        budget: '₹26L',
+        family: '7 members',
+        lang: 'English',
+        phone: '+91 99400 77812',
+        botPaused: false,
+        handoffSent: false,
+        msgs: [
+          { from: 'buyer', text: 'What is the real waiting period for Innova Hycross GX(O) 7-seater in Chennai?' },
+          { from: 'ai', text: 'Current Chennai wait time for Innova Hycross is 4–6 weeks. On-Road (1+3) starts at ₹25,48,200.' }
+        ]
+      },
+      {
+        id: 't4',
+        name: 'Suresh B',
+        channel: 'WhatsApp',
+        status: 'Qualified',
+        car: 'Rumion S CNG',
+        locality: 'Tambaram',
+        budget: '₹13.5L',
+        family: '7 members',
+        lang: 'Tamil',
+        phone: '+91 94441 50922',
+        botPaused: false,
+        handoffSent: false,
+        msgs: [
+          { from: 'buyer', text: 'Rumion CNG boot space & Chennai on-road price sollunga.' },
+          { from: 'ai', text: 'Rumion S CNG Chennai On-Road (1+3) is ₹13,42,800 with 26.1 km/kg efficiency.' }
+        ]
+      }
+    ];
+
+    const PRICE_ROWS = [
+      { id: 'p1', carId: 'hyryder', vIdx: 0, model: 'Hyryder E MT', oldEx: 1094000, newEx: 1114000, rto: 298598, ins13: 64000, reg: 9000, acc: 10000, wait: '2–3 wks', mathError: false },
+      { id: 'p2', carId: 'hyryder', vIdx: 1, model: 'Hyryder S Hybrid e-CVT', oldEx: 1661000, newEx: 1681000, rto: 349750, ins13: 81000, reg: 9000, acc: 12000, wait: '2–3 wks', mathError: true },
+      { id: 'p3', carId: 'taisor', vIdx: 0, model: 'Taisor V Turbo AT', oldEx: 1045000, newEx: 1055000, rto: 178850, ins13: 56000, reg: 8000, acc: 10000, wait: '2 wks', mathError: false },
+      { id: 'p4', carId: 'rumion', vIdx: 0, model: 'Rumion S MT / CNG', oldEx: 1024000, newEx: 1044000, rto: 211360, ins13: 59000, reg: 8000, acc: 10000, wait: '3–4 wks', mathError: false }
+    ];
+
+    const KANBAN_CARDS = [
+      { id: 'k1', col: 'Qualified', buyer: 'Suresh B', car: 'Rumion S CNG', budget: '₹13.4L', showroom: 'Epic Toyota Guindy', sla: '⏱ 22m left', urgent: false },
+      { id: 'k2', col: 'Qualified', buyer: 'Meena R', car: 'Taisor V Turbo', budget: '₹13.2L', showroom: 'Lanson Toyota OMR', sla: '⏱ 18m left', urgent: false },
+      { id: 'k3', col: 'Test-Drive Ready', buyer: 'Ravi Kumar', car: 'Hyryder S Hybrid', budget: '₹21.5L', showroom: 'Epic Toyota Guindy', sla: '⏱ 14m left', urgent: true },
+      { id: 'k4', col: 'Test-Drive Ready', buyer: 'Arjun V', car: 'Glanza G AMT', budget: '₹9.6L', showroom: 'Lanson Toyota OMR', sla: '⏱ 9m left', urgent: true },
+      { id: 'k5', col: 'Dispatched to Showroom', buyer: 'Karthik M', car: 'Innova Hycross', budget: '₹25.5L', showroom: 'Epic Toyota Guindy', sla: '✓ Ack 6m ago', urgent: false },
+      { id: 'k6', col: 'Booked / Won', buyer: 'Deepak N', car: 'Fortuner 4x2 AT', budget: '₹44.9L', showroom: 'Lanson Toyota OMR', sla: '🏆 Token Paid', urgent: false }
+    ];
+
+    const TEAM_MEMBERS = [
+      { name: 'Loga', email: 'loga@motoai.in', role: 'Platform Admin', status: 'Active' },
+      { name: 'Ananya R', email: 'ananya@motoai.in', role: 'Catalog & Pricing Ops', status: 'Active' },
+      { name: 'Vikram K', email: 'vikram@motoai.in', role: 'Concierge Advisor', status: 'Active' },
+      { name: 'Senthil M', email: 'senthil@motoai.in', role: 'Dealer Coordinator', status: 'Active' }
+    ];
+
+    const PERMISSIONS = [
+      { key: 'uploadPdf', label: 'Upload Dealer PDFs' },
+      { key: 'editPrice', label: 'Manual Price & Spec Edit' },
+      { key: 'publishPrice', label: 'Publish Price Lists' },
+      { key: 'liveTakeover', label: 'Live Chat Human Takeover' },
+      { key: 'wabaSetup', label: 'WhatsApp Meta API Setup' },
+      { key: 'viewPii', label: 'View Buyer Phone PII' },
+      { key: 'dispatchLeads', label: 'Dispatch Leads to Showrooms' }
+    ];
+
+    const ROLE_MATRIX = {
+      'Platform Admin': { uploadPdf: true, editPrice: true, publishPrice: true, liveTakeover: true, wabaSetup: true, viewPii: true, dispatchLeads: true },
+      'Catalog & Pricing Ops': { uploadPdf: true, editPrice: true, publishPrice: true, liveTakeover: false, wabaSetup: false, viewPii: false, dispatchLeads: false },
+      'Concierge Advisor': { uploadPdf: false, editPrice: false, publishPrice: false, liveTakeover: true, wabaSetup: false, viewPii: true, dispatchLeads: true },
+      'Dealer Coordinator': { uploadPdf: false, editPrice: false, publishPrice: false, liveTakeover: false, wabaSetup: false, viewPii: true, dispatchLeads: true }
+    };
+
+    const OPS_TITLES = {
+      overview: 'Overview',
+      inbox: 'Live Advisor Inbox',
+      pricing: 'PDF Upload & Manual Price Editor',
+      leads: 'Lead & Showroom Router',
+      waba: 'WhatsApp Business Setup (Meta Cloud API)',
+      team: 'Team & Role Control',
+      guardrails: 'AI Guardrails & Settings'
+    };
+
+    function switchOpsTab(tab) {
+      state.opsTab = tab;
+      document.querySelectorAll('.ops-nav-item').forEach(b => {
+        b.classList.toggle('active', b.dataset.opstab === tab);
+      });
+      document.getElementById('ops-screen-title').textContent = OPS_TITLES[tab];
+      renderActiveOpsTab();
+    }
+
+    function onRolePreviewChange() {
+      state.opsRole = document.getElementById('role-preview-select').value;
+      document.getElementById('sidebar-role-label').textContent = state.opsRole;
+      const perms = ROLE_MATRIX[state.opsRole];
+      const count = Object.values(perms).filter(Boolean).length;
+      document.getElementById('ops-role-pill').textContent = `${count}/7 Permissions Active`;
+      renderActiveOpsTab();
+      showToast(`Previewing Ops Console as ${state.opsRole}`);
+    }
+
+    function renderActiveOpsTab() {
+      const container = document.getElementById('ops-content');
+      const perms = ROLE_MATRIX[state.opsRole];
+      const q = (document.getElementById('ops-quick-search').value || '').toLowerCase();
+
+      if (state.opsTab === 'overview') {
+        const bars = [
+          { day: 'Mon', wa: 28, web: 14 },
+          { day: 'Tue', wa: 34, web: 18 },
+          { day: 'Wed', wa: 31, web: 22 },
+          { day: 'Thu', wa: 42, web: 25 },
+          { day: 'Fri', wa: 39, web: 27 },
+          { day: 'Sat', wa: 54, web: 33 },
+          { day: 'Today', wa: 48, web: 29 }
+        ];
+        container.innerHTML = `
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div style="font-size:12px;font-weight:700;color:var(--muted);">Active Buyers Today</div>
+              <div class="kpi-val num">48</div>
+              <span class="badge badge-ok">↑ 18% vs last Tue</span>
+            </div>
+            <div class="kpi-card">
+              <div style="font-size:12px;font-weight:700;color:var(--muted);">AI Auto-Resolved</div>
+              <div class="kpi-val num">84%</div>
+              <span class="badge badge-brand">Zero hallucinated ₹</span>
+            </div>
+            <div class="kpi-card">
+              <div style="font-size:12px;font-weight:700;color:var(--muted);">Test Drives Booked</div>
+              <div class="kpi-val num">9</div>
+              <span class="badge badge-accent">Epic &amp; Lanson Toyota</span>
+            </div>
+            <div class="kpi-card">
+              <div style="font-size:12px;font-weight:700;color:var(--muted);">Price Freshness</div>
+              <div class="kpi-val num">100% Oct 26</div>
+              <span class="badge badge-ok">6/6 Models Verified</span>
+            </div>
+          </div>
+
+          <div class="overview-grid">
+            <div class="panel">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <div>
+                  <h3 style="font-size:15px;font-weight:800;">WhatsApp vs Web Conversations — Last 7 Days</h3>
+                  <div style="font-size:12px;color:var(--muted);">Real-time session distribution across Chennai buyers</div>
+                </div>
+                <div style="display:flex;gap:12px;font-size:12px;font-weight:600;">
+                  <span style="color:var(--wa);">■ WhatsApp</span>
+                  <span style="color:var(--brand);">■ Web</span>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;height:190px;padding-top:16px;border-bottom:1px solid var(--border);">
+                ${bars.map(b => `
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;">
+                    <div style="display:flex;align-items:flex-end;gap:4px;height:145px;">
+                      <div title="WhatsApp: ${b.wa}" style="width:14px;height:${b.wa * 2.4}px;background:var(--wa-green);border-radius:4px 4px 0 0;"></div>
+                      <div title="Web: ${b.web}" style="width:14px;height:${b.web * 2.4}px;background:var(--brand);border-radius:4px 4px 0 0;"></div>
+                    </div>
+                    <span style="font-size:11.5px;font-weight:600;color:var(--muted);">${b.day}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3 style="font-size:15px;font-weight:800;margin-bottom:12px;">Live Ops Activity Feed</h3>
+              <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+                <div style="padding:9px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border);">
+                  <strong>Ravi Kumar</strong> selected Tomorrow 4 PM test drive for <strong>Hyryder S Hybrid</strong> <span style="color:var(--muted);font-size:11.5px;">· 3m ago</span>
+                </div>
+                <div style="padding:9px;background:#FEF2F2;border-radius:10px;border:1px solid #FECACA;">
+                  <strong>Priya S</strong> escalated to Advisor (NCB transfer question on Glanza) <span style="color:var(--muted);font-size:11.5px;">· 7m ago</span>
+                </div>
+                <div style="padding:9px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border);">
+                  <strong>Ananya R</strong> staged Oct 2026 PDF diff for Epic Toyota Chennai <span style="color:var(--muted);font-size:11.5px;">· 24m ago</span>
+                </div>
+              </div>
+              <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;">
+                <button class="btn btn-primary btn-sm" onclick="switchOpsTab('inbox')">Open Live Inbox</button>
+                <button class="btn btn-outline btn-sm" onclick="switchOpsTab('pricing')">Review Price Diffs</button>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      if (state.opsTab === 'inbox') {
+        let threads = OPS_THREADS.filter(t => {
+          if (q && !(t.name.toLowerCase().includes(q) || t.car.toLowerCase().includes(q))) return false;
+          if (state.inboxTriage === 'stuck') return t.status === 'AI Stuck';
+          if (state.inboxTriage === 'td') return t.status === 'Test-Drive Ready';
+          return true;
+        });
+        const active = OPS_THREADS.find(t => t.id === state.selectedThreadId) || threads[0] || OPS_THREADS[0];
+        const canTakeover = perms.liveTakeover;
+        const canPii = perms.viewPii;
+
+        container.innerHTML = `
+          <div class="inbox-grid">
+            <div class="inbox-list">
+              <div style="padding:10px;border-bottom:1px solid var(--border);display:flex;gap:5px;flex-wrap:wrap;">
+                <button class="btn btn-sm ${state.inboxTriage==='all'?'btn-primary':'btn-outline'}" onclick="state.inboxTriage='all';renderActiveOpsTab()">All (4)</button>
+                <button class="btn btn-sm ${state.inboxTriage==='stuck'?'btn-primary':'btn-outline'}" onclick="state.inboxTriage='stuck';renderActiveOpsTab()">AI Stuck</button>
+                <button class="btn btn-sm ${state.inboxTriage==='td'?'btn-primary':'btn-outline'}" onclick="state.inboxTriage='td';renderActiveOpsTab()">Test-Drive Ready</button>
+              </div>
+              <div style="overflow-y:auto;flex:1;">
+                ${threads.map(t => `
+                  <div class="inbox-thread-item ${t.id === active.id ? 'active' : ''}" onclick="state.selectedThreadId='${t.id}';renderActiveOpsTab()">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                      <strong style="font-size:13.5px;">${t.name}</strong>
+                      <span class="badge ${t.channel==='WhatsApp'?'badge-ok':'badge-brand'}" style="font-size:10px;">${t.channel}</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--ink-2);margin-top:2px;">${t.car} · ${t.budget}</div>
+                    <div style="margin-top:5px;">
+                      <span class="badge ${t.status==='AI Stuck'?'badge-danger':t.status==='Test-Drive Ready'?'badge-accent':'badge-slate'}" style="font-size:10.5px;">${t.status}</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="inbox-chat">
+              <div style="padding:12px 16px;background:#FFF;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div>
+                  <div style="font-weight:800;font-size:14.5px;">${active.name} <span class="badge badge-slate">${active.channel}</span></div>
+                  <div style="font-size:12px;color:var(--muted);">${active.botPaused ? '🧑‍💼 Human Advisor Active (AI Paused)' : '🤖 MotoAI Bot Auto-Replying'}</div>
+                </div>
+                <button class="btn btn-sm ${active.botPaused ? 'btn-soft' : 'btn-primary'}" ${canTakeover ? '' : 'disabled title="Locked for your current role"'}
+                  onclick="toggleAdvisorTakeover('${active.id}')">
+                  ${active.botPaused ? '🤖 Resume AI Bot' : '🧑‍💼 Take Over as Advisor'}
+                </button>
+              </div>
+
+              <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;">
+                ${active.msgs.map(m => `
+                  <div class="msg-bubble ${m.from === 'buyer' ? 'msg-ai' : 'msg-user'}" style="${m.from==='advisor' ? 'background:#0F172A;color:#FFF;' : ''}">
+                    <div style="font-size:10.5px;font-weight:700;opacity:0.72;margin-bottom:2px;">${m.from === 'buyer' ? active.name : m.from === 'advisor' ? 'Loga (Advisor)' : 'MotoAI Bot'}</div>
+                    ${m.text}
+                  </div>
+                `).join('')}
+              </div>
+
+              <form class="drawer-input-row" onsubmit="sendAdvisorReply(event, '${active.id}')">
+                <input id="advisor-reply-input" type="text" placeholder="${canTakeover ? 'Reply as MotoAI Advisor...' : 'Read-only for ' + state.opsRole}" ${canTakeover ? '' : 'disabled'} />
+                <button type="submit" class="btn btn-primary btn-sm" ${canTakeover ? '' : 'disabled'}>Send</button>
+              </form>
+            </div>
+
+            <div class="inbox-profile">
+              <div style="font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">Buyer Profile</div>
+              <div style="font-size:16px;font-weight:800;">${active.name}</div>
+              <div style="font-size:12.5px;color:var(--brand);font-weight:700;margin-bottom:12px;">${canPii ? active.phone : '🔒 Phone PII Restricted'}</div>
+              <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+                <div><span style="color:var(--muted);">Family:</span> <strong>${active.family}</strong></div>
+                <div><span style="color:var(--muted);">Budget:</span> <strong class="num">${active.budget}</strong></div>
+                <div><span style="color:var(--muted);">Locality:</span> <strong>${active.locality}</strong></div>
+                <div><span style="color:var(--muted);">Language:</span> <strong>${active.lang}</strong></div>
+                <div><span style="color:var(--muted);">Shortlist:</span> <strong>${active.car}</strong></div>
+              </div>
+              <hr style="border:0;border-top:1px solid var(--border);margin:14px 0;" />
+              <button class="btn btn-primary btn-sm" style="width:100%;" ${perms.dispatchLeads ? '' : 'disabled'} onclick="sendShowroomHandoff('${active.id}')">
+                ${active.handoffSent ? '✓ Sent to Epic Toyota Guindy' : '📤 Send Showroom Handoff Card'}
+              </button>
+              ${active.handoffSent ? '<div class="badge badge-ok" style="margin-top:8px;width:100%;justify-content:center;">Logged → Epic Toyota Guindy</div>' : ''}
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      if (state.opsTab === 'pricing') {
+        const canEdit = perms.editPrice;
+        const canPublish = perms.publishPrice;
+        const errCount = PRICE_ROWS.filter(r => r.mathError).length;
+        container.innerHTML = `
+          <div class="panel" style="margin-bottom:16px;">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <label style="font-size:13px;font-weight:700;">Dealer:</label>
+                <select class="sort-select"><option>Epic Toyota Chennai (Oct 2026)</option><option>Lanson Toyota OMR</option></select>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm" ${perms.uploadPdf ? '' : 'disabled'} onclick="simulatePdfUpload()">📄 Simulate Dealer PDF Upload (Diff Demo)</button>
+                <button class="btn btn-primary btn-sm" ${canPublish ? '' : 'disabled'} onclick="publishPriceList()">🚀 Publish v2 Live</button>
+              </div>
+            </div>
+            <div class="dropzone" onclick="simulatePdfUpload()">
+              <div style="font-weight:700;font-size:14px;">Drag &amp; Drop Dealer Price List PDF here, or click to simulate upload</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:3px;">Auto-extracts Ex-Showroom, TCS 1%, RTO, 1+3 Insurance &amp; Wait Time diffs</div>
+            </div>
+          </div>
+
+          <div class="panel" style="overflow-x:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="font-size:15px;font-weight:800;">Diff &amp; Inline Manual Edit Table</h3>
+              ${errCount ? `<span class="badge badge-danger">${errCount} row fails arithmetic check</span>` : `<span class="badge badge-ok">✓ All rows mathematically verified</span>`}
+            </div>
+            <table class="ops-table">
+              <thead>
+                <tr>
+                  <th>Model &amp; Variant</th>
+                  <th>Old Ex-Showroom</th>
+                  <th>New Ex-Showroom</th>
+                  <th>Accessories</th>
+                  <th>Wait Time</th>
+                  <th>TCS (1%)</th>
+                  <th>New On-Road (1+3)</th>
+                  <th>Δ Delta</th>
+                  <th>Check</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${PRICE_ROWS.map((r, i) => {
+                  const tcs = r.newEx >= 1000000 ? Math.round(r.newEx * 0.01) : 0;
+                  const onRoad = r.newEx + tcs + r.rto + r.ins13 + r.reg + r.acc + (r.mathError ? 1500 : 0);
+                  const delta = r.newEx - r.oldEx;
+                  return `
+                    <tr>
+                      <td><strong>${r.model}</strong></td>
+                      <td class="num">${formatINR(r.oldEx)}</td>
+                      <td><input class="cell-input" type="number" ${canEdit ? '' : 'disabled'} value="${r.newEx}" oninput="updatePriceRow(${i}, 'newEx', +this.value)" /></td>
+                      <td><input class="cell-input" style="width:88px;" type="number" ${canEdit ? '' : 'disabled'} value="${r.acc}" oninput="updatePriceRow(${i}, 'acc', +this.value)" /></td>
+                      <td><input class="cell-input" style="width:88px;" type="text" ${canEdit ? '' : 'disabled'} value="${r.wait}" oninput="updatePriceRow(${i}, 'wait', this.value)" /></td>
+                      <td class="num">${formatINR(tcs)}</td>
+                      <td class="num" style="font-weight:800;color:var(--brand);">${formatINR(onRoad)}</td>
+                      <td><span class="badge ${delta >= 0 ? 'badge-accent' : 'badge-ok'} num">${delta >= 0 ? '+' : ''}${formatINR(delta)}</span></td>
+                      <td>
+                        ${r.mathError
+                          ? `<button class="btn btn-danger-soft btn-sm" onclick="fixMathRow(${i})">⚠ Fix Math</button>`
+                          : `<span class="badge badge-ok">✓ Valid</span>`}
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+        return;
+      }
+
+      if (state.opsTab === 'leads') {
+        const cols = ['Qualified', 'Test-Drive Ready', 'Dispatched to Showroom', 'Booked / Won'];
+        container.innerHTML = `
+          <div class="kanban-grid">
+            ${cols.map((col, cIdx) => {
+              const items = KANBAN_CARDS.filter(k => k.col === col && (!q || k.buyer.toLowerCase().includes(q) || k.car.toLowerCase().includes(q)));
+              return `
+                <div class="kanban-col">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <strong style="font-size:13px;">${col}</strong>
+                    <span class="badge badge-slate">${items.length}</span>
+                  </div>
+                  ${items.map(k => `
+                    <div class="kanban-card">
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                        <strong style="font-size:13.5px;">${k.buyer}</strong>
+                        <span class="badge ${k.urgent ? 'badge-danger' : 'badge-accent'}" style="font-size:10.5px;">${k.sla}</span>
+                      </div>
+                      <div style="font-size:12.5px;color:var(--ink-2);margin-top:4px;">${k.car} · <strong class="num">${k.budget}</strong></div>
+                      <div style="font-size:11.5px;color:var(--muted);margin-top:3px;">📍 ${k.showroom}</div>
+                      ${cIdx < cols.length - 1 ? `
+                        <button class="btn btn-outline btn-sm" style="width:100%;margin-top:9px;" ${perms.dispatchLeads ? '' : 'disabled'} onclick="moveKanbanCard('${k.id}')">Move →</button>
+                      ` : `<div class="badge badge-ok" style="margin-top:9px;width:100%;justify-content:center;">Deal Closed</div>`}
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+        return;
+      }
+
+      if (state.opsTab === 'waba') {
+        const locked = !perms.wabaSetup;
+        container.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-radius:14px;margin-bottom:16px;background:${state.wabaMode==='live' ? 'var(--ok-soft)' : 'var(--accent-soft)'};border:1px solid ${state.wabaMode==='live' ? '#BBF7D0' : '#FDE68A'};">
+            <div style="font-weight:700;font-size:14px;color:${state.wabaMode==='live' ? '#166534' : '#92400E'};">
+              ${state.wabaMode === 'live' ? '✓ Meta Cloud API · Verified & Active (Chennai Production)' : '🧪 Meta Cloud API · Sandbox Test Mode'}
+            </div>
+            <button class="btn btn-outline btn-sm" ${locked?'disabled':''} onclick="state.wabaMode = state.wabaMode==='live'?'sandbox':'live';renderActiveOpsTab()">
+              Switch to ${state.wabaMode==='live'?'Sandbox':'Live'}
+            </button>
+          </div>
+
+          <div class="overview-grid">
+            <div class="panel">
+              <h3 style="font-size:15px;font-weight:800;margin-bottom:12px;">Meta Cloud API Configuration</h3>
+              <div style="display:grid;gap:11px;font-size:13px;">
+                <div>
+                  <label style="font-weight:700;display:block;margin-bottom:4px;">Phone Number ID</label>
+                  <input class="cell-input" style="width:100%;" value="428910447291820" ${locked?'disabled':''} />
+                </div>
+                <div>
+                  <label style="font-weight:700;display:block;margin-bottom:4px;">WhatsApp Business Account (WABA) ID</label>
+                  <input class="cell-input" style="width:100%;" value="109384726155091" ${locked?'disabled':''} />
+                </div>
+                <div>
+                  <label style="font-weight:700;display:block;margin-bottom:4px;">Permanent Access Token</label>
+                  <div style="display:flex;gap:8px;">
+                    <input class="cell-input" style="flex:1;" type="${state.showToken?'text':'password'}" value="EAAGm0PX4ZCpsBAJ9k2MotoAITokenLive9912" ${locked?'disabled':''} />
+                    <button class="btn btn-outline btn-sm" onclick="state.showToken=!state.showToken;renderActiveOpsTab()">${state.showToken?'Hide':'Show'}</button>
+                  </div>
+                </div>
+                <div>
+                  <label style="font-weight:700;display:block;margin-bottom:4px;">Webhook Verify Token</label>
+                  <input class="cell-input" style="width:100%;" value="motoai_chennai_waba_verify_2026" ${locked?'disabled':''} />
+                </div>
+                <div>
+                  <label style="font-weight:700;display:block;margin-bottom:4px;">Read-only Webhook URL</label>
+                  <div style="display:flex;gap:8px;">
+                    <input class="cell-input" style="flex:1;background:#F8FAFC;" readonly value="https://api.motoai.in/api/whatsapp" />
+                    <button class="btn btn-outline btn-sm" onclick="copyWebhookUrl()">📋 Copy</button>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+                  <button class="btn btn-primary btn-sm" ${locked?'disabled':''} onclick="verifyWebhookDemo()">Verify Webhook &amp; Test Connection</button>
+                  <span id="webhook-verify-status" style="font-size:12.5px;font-weight:700;color:var(--ok);"></span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div class="panel">
+                <h3 style="font-size:15px;font-weight:800;margin-bottom:10px;">Send Test WhatsApp Message</h3>
+                <div style="display:grid;gap:9px;font-size:13px;">
+                  <input id="test-wa-phone" class="cell-input" style="width:100%;" value="+91 98401 44210" placeholder="+91 98xxx xxxxx" />
+                  <select id="test-wa-tpl" class="sort-select">
+                    <option value="price_update_notification">price_update_notification</option>
+                    <option value="test_drive_reminder">test_drive_reminder</option>
+                    <option value="shortlist_handoff">shortlist_handoff</option>
+                  </select>
+                  <button class="btn btn-wa btn-sm" ${locked?'disabled':''} onclick="sendTestWaMsg()">Send Test Message</button>
+                  <div id="test-wa-result" style="font-size:12px;font-weight:700;color:var(--ok);"></div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <h3 style="font-size:15px;font-weight:800;margin-bottom:10px;">Approved Templates</h3>
+                <table class="ops-table">
+                  <thead><tr><th>Template Name</th><th>Language</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>price_update_notification</code></td><td>en / ta</td><td><span class="badge badge-ok">APPROVED</span></td></tr>
+                    <tr><td><code>test_drive_reminder</code></td><td>en / ta</td><td><span class="badge badge-ok">APPROVED</span></td></tr>
+                    <tr><td><code>shortlist_handoff</code></td><td>en</td><td><span class="badge badge-accent">PENDING</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      if (state.opsTab === 'team') {
+        const roles = Object.keys(ROLE_MATRIX);
+        container.innerHTML = `
+          <div class="panel" style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div>
+                <h3 style="font-size:15px;font-weight:800;">Internal B2C Team Members</h3>
+                <div style="font-size:12px;color:var(--muted);">Single-organization MotoAI Chennai team</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openTeamModal()">+ Add Team Member</button>
+            </div>
+            <table class="ops-table">
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>
+              <tbody>
+                ${TEAM_MEMBERS.map(m => `
+                  <tr>
+                    <td><strong>${m.name}</strong></td>
+                    <td>${m.email}</td>
+                    <td><span class="badge badge-brand">${m.role}</span></td>
+                    <td><span class="badge badge-ok">${m.status}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="panel" style="overflow-x:auto;">
+            <h3 style="font-size:15px;font-weight:800;margin-bottom:4px;">Interactive Role Permission Matrix</h3>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Click any switch to modify permissions live (syncs with topbar Role Preview).</div>
+            <table class="ops-table">
+              <thead>
+                <tr>
+                  <th>Permission</th>
+                  ${roles.map(r => `<th>${r}</th>`).join('')}
+                </tr>
+              </thead>
+              <tbody>
+                ${PERMISSIONS.map(p => `
+                  <tr>
+                    <td><strong>${p.label}</strong></td>
+                    ${roles.map(r => `
+                      <td>
+                        <label class="switch">
+                          <input type="checkbox" ${ROLE_MATRIX[r][p.key] ? 'checked' : ''} onchange="toggleRolePerm('${r}','${p.key}',this.checked)" />
+                          <span class="switch-slider"></span>
+                        </label>
+                      </td>
+                    `).join('')}
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+        return;
+      }
+
+      if (state.opsTab === 'guardrails') {
+        const g = state.guardrails;
+        const rows = [
+          { key: 'sqlOnly', title: 'Numbers from SQL Only', desc: 'Block LLM from inventing or rounding Ex-Showroom, RTO, or Insurance numbers.' },
+          { key: 'blockBankUpi', title: 'Block Bank / UPI Details', desc: 'Refuse any buyer prompt asking for UPI IDs, bank accounts, or payment links.' },
+          { key: 'deliveryDisclaimer', title: 'Always Append Delivery Disclaimer', desc: 'Include Chennai showroom wait-time & color availability note on quotes.' },
+          { key: 'zeroPhoneWall', title: 'Zero Phone Wall on Prices', desc: 'Guarantee anonymous price browsing without OTP/phone gates.' }
+        ];
+        container.innerHTML = `
+          <div class="overview-grid">
+            <div class="panel">
+              <h3 style="font-size:15px;font-weight:800;margin-bottom:12px;">Model &amp; Language Routing</h3>
+              <div style="display:grid;gap:14px;">
+                <div>
+                  <label style="font-size:13px;font-weight:700;display:block;margin-bottom:5px;">Active LLM Engine</label>
+                  <select class="sort-select" style="width:100%;" onchange="state.llmModel=this.value;showToast('Active LLM set to ' + this.value)">
+                    ${['Claude Sonnet 4', 'Claude Haiku', 'Fallback DB Mode'].map(m => `<option ${state.llmModel===m?'selected':''}>${m}</option>`).join('')}
+                  </select>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border);">
+                  <div>
+                    <div style="font-weight:700;font-size:13.5px;">Language Auto-Detect (EN / தமிழ் / Tanglish)</div>
+                    <div style="font-size:12px;color:var(--muted);">Automatically mirror buyer script across WhatsApp &amp; Web</div>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" ${state.langAutoDetect ? 'checked' : ''} onchange="state.langAutoDetect=this.checked;showToast('Language Auto-Detect updated')" />
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3 style="font-size:15px;font-weight:800;margin-bottom:12px;">Strict AI Safety Guardrails</h3>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                ${rows.map(r => `
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px;border:1px solid var(--border);border-radius:10px;">
+                    <div>
+                      <div style="font-weight:700;font-size:13.5px;">${r.title}</div>
+                      <div style="font-size:12px;color:var(--muted);">${r.desc}</div>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" ${g[r.key] ? 'checked' : ''} onchange="state.guardrails['${r.key}']=this.checked;showToast('${r.title} ' + (this.checked?'enabled':'disabled'))" />
+                      <span class="switch-slider"></span>
+                    </label>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    /* =========================================================================
+       10. OPS INTERACTIONS
+       ========================================================================= */
+    function toggleAdvisorTakeover(threadId) {
+      const t = OPS_THREADS.find(x => x.id === threadId);
+      if (!t) return;
+      t.botPaused = !t.botPaused;
+      renderActiveOpsTab();
+      showToast(t.botPaused ? `Took over ${t.name}'s chat as Advisor` : `Resumed MotoAI Bot for ${t.name}`);
+    }
+
+    function sendAdvisorReply(e, threadId) {
+      e.preventDefault();
+      const inp = document.getElementById('advisor-reply-input');
+      const txt = inp.value.trim();
+      if (!txt) return;
+      const t = OPS_THREADS.find(x => x.id === threadId);
+      t.botPaused = true;
+      t.msgs.push({ from: 'advisor', text: txt });
+      renderActiveOpsTab();
+    }
+
+    function sendShowroomHandoff(threadId) {
+      const t = OPS_THREADS.find(x => x.id === threadId);
+      t.handoffSent = true;
+      renderActiveOpsTab();
+      showToast(`Showroom handoff card sent to Epic Toyota Guindy for ${t.name}`);
+    }
+
+    function simulatePdfUpload() {
+      PRICE_ROWS[0].newEx = 1124000;
+      PRICE_ROWS[2].newEx = 1065000;
+      PRICE_ROWS[1].mathError = true;
+      renderActiveOpsTab();
+      showToast('Simulated Epic Toyota Oct 2026 PDF parsed — 1 math alert flagged');
+    }
+
+    function updatePriceRow(idx, field, val) {
+      PRICE_ROWS[idx][field] = val;
+      if (field === 'newEx' || field === 'acc') {
+        const r = PRICE_ROWS[idx];
+        const tcs = r.newEx >= 1000000 ? Math.round(r.newEx * 0.01) : 0;
+        const onRoad = r.newEx + tcs + r.rto + r.ins13 + r.reg + r.acc + (r.mathError ? 1500 : 0);
+        // Update live row cells without losing input focus
+        const tbody = document.querySelector('#ops-content table tbody');
+        if (tbody && tbody.rows[idx]) {
+          const rowEl = tbody.rows[idx];
+          rowEl.cells[5].textContent = formatINR(tcs);
+          rowEl.cells[6].textContent = formatINR(onRoad);
+          const delta = r.newEx - r.oldEx;
+          rowEl.cells[7].innerHTML = `<span class="badge ${delta >= 0 ? 'badge-accent' : 'badge-ok'} num">${delta >= 0 ? '+' : ''}${formatINR(delta)}</span>`;
+        }
+      }
+    }
+
+    function fixMathRow(idx) {
+      PRICE_ROWS[idx].mathError = false;
+      renderActiveOpsTab();
+      showToast(`Arithmetic check passed for ${PRICE_ROWS[idx].model}`);
+    }
+
+    function publishPriceList() {
+      if (PRICE_ROWS.some(r => r.mathError)) {
+        showToast('Fix red arithmetic error before publishing!');
+        return;
+      }
+      PRICE_ROWS.forEach(r => {
+        const car = CARS.find(c => c.id === r.carId);
+        if (car && car.variants[r.vIdx]) {
+          const v = car.variants[r.vIdx];
+          v.ex = r.newEx;
+          v.acc = r.acc;
+          v.tcs = r.newEx >= 1000000 ? Math.round(r.newEx * 0.01) : 0;
+          v.onRoad13 = v.ex + v.tcs + v.rto + v.ins13 + v.reg + v.acc;
+          v.onRoad33 = v.ex + v.tcs + v.rto + v.ins33 + v.reg + v.acc;
+          car.wait = r.wait;
+        }
+      });
+      renderShowroom();
+      showToast('Published Price List v2 Live! Customer Showroom & Chat updated.');
+    }
+
+    function moveKanbanCard(cardId) {
+      const cols = ['Qualified', 'Test-Drive Ready', 'Dispatched to Showroom', 'Booked / Won'];
+      const card = KANBAN_CARDS.find(k => k.id === cardId);
+      const idx = cols.indexOf(card.col);
+      if (idx >= 0 && idx < cols.length - 1) {
+        card.col = cols[idx + 1];
+        renderActiveOpsTab();
+        showToast(`Moved ${card.buyer} → ${card.col}`);
+      }
+    }
+
+    function copyWebhookUrl() {
+      const url = 'https://api.motoai.in/api/whatsapp';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).catch(() => {});
+      }
+      showToast('Copied Webhook URL: ' + url);
+    }
+
+    function verifyWebhookDemo() {
+      const el = document.getElementById('webhook-verify-status');
+      el.textContent = 'Checking Meta Graph v21.0...';
+      setTimeout(() => {
+        el.textContent = '✓ Webhook 200 OK · Signature Verified!';
+        showToast('Meta Cloud API Webhook Verified');
+      }, 450);
+    }
+
+    function sendTestWaMsg() {
+      const phone = document.getElementById('test-wa-phone').value;
+      const tpl = document.getElementById('test-wa-tpl').value;
+      document.getElementById('test-wa-result').textContent = `✓ Delivered template "${tpl}" to ${phone} (wamid.HBgM...)`;
+      showToast(`Test WhatsApp message sent to ${phone}`);
+    }
+
+    function toggleRolePerm(role, key, checked) {
+      ROLE_MATRIX[role][key] = checked;
+      if (role === state.opsRole) {
+        const count = Object.values(ROLE_MATRIX[role]).filter(Boolean).length;
+        document.getElementById('ops-role-pill').textContent = `${count}/7 Permissions Active`;
+      }
+      showToast(`${role}: ${key} ${checked ? 'granted' : 'revoked'}`);
+    }
+
+    function openTeamModal() {
+      document.getElementById('team-modal-inner').innerHTML = `
+        <div class="modal-head">
+          <h3 style="font-size:16px;font-weight:800;">Add MotoAI Team Member</h3>
+          <button class="btn btn-outline btn-sm" onclick="closeTeamModal()">✕</button>
+        </div>
+        <form class="modal-body" onsubmit="addTeamMember(event)" style="display:grid;gap:12px;">
+          <div>
+            <label style="font-size:12.5px;font-weight:700;display:block;margin-bottom:4px;">Full Name</label>
+            <input id="new-tm-name" required class="cell-input" style="width:100%;" placeholder="e.g. Karthika S" />
+          </div>
+          <div>
+            <label style="font-size:12.5px;font-weight:700;display:block;margin-bottom:4px;">MotoAI Email</label>
+            <input id="new-tm-email" required type="email" class="cell-input" style="width:100%;" placeholder="karthika@motoai.in" />
+          </div>
+          <div>
+            <label style="font-size:12.5px;font-weight:700;display:block;margin-bottom:4px;">Role</label>
+            <select id="new-tm-role" class="sort-select" style="width:100%;">
+              <option>Concierge Advisor</option>
+              <option>Catalog & Pricing Ops</option>
+              <option>Dealer Coordinator</option>
+              <option>Platform Admin</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Create Invite</button>
+        </form>
+      `;
+      document.getElementById('team-modal').classList.remove('hidden');
+    }
+
+    function closeTeamModal() {
+      document.getElementById('team-modal').classList.add('hidden');
+    }
+
+    function addTeamMember(e) {
+      e.preventDefault();
+      TEAM_MEMBERS.push({
+        name: document.getElementById('new-tm-name').value.trim(),
+        email: document.getElementById('new-tm-email').value.trim(),
+        role: document.getElementById('new-tm-role').value,
+        status: 'Invited'
+      });
+      closeTeamModal();
+      renderActiveOpsTab();
+      showToast('Team member invited!');
+    }
+
+    /* =========================================================================
+       11. BOOTSTRAP
+       ========================================================================= */
+    renderShowroom();
+    resetWaStarter();
+  </script>
+</body>
+</html>

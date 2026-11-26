@@ -1,0 +1,31 @@
+{
+  "name": "motoai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MotoAI — AI Car Sales Advisor",
+  "scripts": {
+    "dev": "corepack pnpm --filter @motoai/app dev",
+    "build": "corepack pnpm --filter @motoai/app build",
+    "start": "corepack pnpm --filter @motoai/app start",
+    "lint": "corepack pnpm -r --if-present lint",
+    "typecheck": "corepack pnpm -r --if-present typecheck",
+    "test": "vitest run",
+    "eval": "corepack pnpm --filter @motoai/core exec tsx ../../evals/runner.ts",
+    "db:migrate": "corepack pnpm --filter @motoai/core db:migrate",
+    "db:generate": "corepack pnpm --filter @motoai/core db:generate",
+    "db:seed": "corepack pnpm --filter @motoai/core db:seed",
+    "db:studio": "corepack pnpm --filter @motoai/core db:studio",
+    "clean": "turbo clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0",
+    "@types/node": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.4"
+}

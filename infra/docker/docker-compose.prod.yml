@@ -1,0 +1,90 @@
+# MotoAI — Production (Single VPS)
+# Usage: docker compose -f infra/docker/docker-compose.prod.yml up -d
+# Requires: .env.prod with all secrets
+
+services:
+  app:
+    image: ghcr.io/${GITHUB_REPO:-motoai}:${APP_VERSION:-latest}
+    container_name: motoai-app
+    ports:
+      - "3000:3000"
+    env_file: .env.prod
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: motoai-db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backups:/backups
+    environment:
+      POSTGRES_USER: motoai
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_pass
+      POSTGRES_DB: motoai
+    secrets:
+      - db_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U motoai"]
+      interval: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: motoai-backup
+    volumes:
+      - ./backups:/backups
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: motoai
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_pass
+      POSTGRES_DB: motoai
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+    secrets:
+      - db_pass
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    container_name: motoai-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    restart: unless-stopped
+
+secrets:
+  db_pass:
+    file: ./secrets/db_password.txt
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

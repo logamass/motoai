@@ -1,0 +1,20 @@
+node_modules/
+**/node_modules/
+.git/
+.gitignore
+.next/
+app/.next/
+.turbo/
+dist/
+**/dist/
+coverage/
+.env
+.env.local
+.env.prod
+.env.*.local
+infra/docker/backups/
+infra/docker/secrets/
+NEW CAR DATA/
+prototype/
+tests/
+*.log

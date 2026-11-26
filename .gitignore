@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+.next/
+.turbo/
+out/
+
+# Environment
+.env
+.env.local
+**/.env.local
+.env.prod
+**/.env.prod
+.env.*.local
+
+# Raw dealer PDFs (contain showroom bank details — never commit publicly)
+NEW CAR DATA/
+
+# Secrets
+infra/docker/secrets/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Backups
+infra/docker/backups/
+
+# Prototype data (generated)
+prototype/data/
+
+# Docker
+pgdata/

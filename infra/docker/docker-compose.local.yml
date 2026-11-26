@@ -1,0 +1,56 @@
+# MotoAI — Phase 1 Local Full-Stack Docker Deployment
+# Builds and runs both PostgreSQL (pgvector) and the Next.js production container locally.
+# Usage: docker compose -f infra/docker/docker-compose.local.yml up -d --build
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: motoai-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: motoai
+      POSTGRES_PASSWORD: motoai_dev_password
+      POSTGRES_DB: motoai
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U motoai"]
+      interval: 3s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+      target: production
+    container_name: motoai-app
+    ports:
+      - "3000:3000"
+    env_file:
+      - path: .env.local
+        required: false
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://motoai:motoai_dev_password@db:5432/motoai
+      NEXTAUTH_SECRET: local-dev-secret-change-in-production-32chars
+      NEXTAUTH_URL: http://localhost:3000
+      FLAG_ANALYTICS: "false"
+      FLAG_TELEGRAM: "false"
+      FLAG_VOICE: "false"
+      FLAG_EMI_BANKS: "false"
+      FLAG_MULTI_CITY: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
