@@ -103,7 +103,7 @@ export async function runGeminiAgent(
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const payload = JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt }] },
+      systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] },
       contents,
       tools: [{ functionDeclarations }],
       generationConfig: {
