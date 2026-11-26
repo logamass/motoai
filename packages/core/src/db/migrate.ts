@@ -15,7 +15,8 @@ import { env } from '../config/index.js'
 async function runMigrations() {
   console.log('🔄 Running database migrations...')
 
-  const client = postgres(env.DATABASE_URL, { max: 1 })
+  const cleanUrl = env.DATABASE_URL.replace(/[&?]channel_binding=[^&]*/gi, '').replace(/\?$/, '')
+  const client = postgres(cleanUrl, { max: 1 })
   const db = drizzle(client)
 
   try {

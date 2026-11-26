@@ -16,9 +16,14 @@ import { env } from '../config/index.js'
 let _client: ReturnType<typeof postgres> | null = null
 let _db: ReturnType<typeof drizzle> | null = null
 
+function sanitizePgUrl(url: string): string {
+  // postgres.js does not support Neon's channel_binding=require query param
+  return url.replace(/[&?]channel_binding=[^&]*/gi, '').replace(/\?$/, '')
+}
+
 function getClient() {
   if (!_client) {
-    _client = postgres(env.DATABASE_URL, {
+    _client = postgres(sanitizePgUrl(env.DATABASE_URL), {
       max: 20,
       idle_timeout: 20,
       connect_timeout: 10,

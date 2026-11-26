@@ -2,6 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "corepack enable && corepack pnpm install --frozen-lockfile",
-  "buildCommand": "corepack pnpm --filter @motoai/app build",
+  "buildCommand": "corepack pnpm db:migrate && corepack pnpm db:seed && corepack pnpm --filter @motoai/app build",
   "outputDirectory": "app/.next"
 }
