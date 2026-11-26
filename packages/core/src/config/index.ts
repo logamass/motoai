@@ -34,7 +34,7 @@ const envSchema = z.object({
   // --- LLM (Phase 3) ---
   ANTHROPIC_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  GEMINI_MODEL: z.string().default('gemini-flash-latest'),
 
   // --- WhatsApp (Phase 4) ---
   WHATSAPP_VERIFY_TOKEN: z.string().optional(),
