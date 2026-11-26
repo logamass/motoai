@@ -3,5 +3,5 @@
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter @motoai/core db:migrate && pnpm --filter @motoai/core db:seed && pnpm --filter @motoai/app build",
-  "outputDirectory": "app/.next"
+  "outputDirectory": ".next"
 }
