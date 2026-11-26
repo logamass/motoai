@@ -104,6 +104,7 @@ export async function runGeminiAgent(
       generationConfig: {
         temperature: 0.4,
         maxOutputTokens: 1024,
+        thinkingConfig: { thinkingBudget: 0 },
       },
     })
 

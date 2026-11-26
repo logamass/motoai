@@ -31,8 +31,12 @@ export async function GET(req: Request): Promise<NextResponse> {
         },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: 'Say OK' }] }],
+          generationConfig: {
+            maxOutputTokens: 16,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(15000),
       })
       const txt = await r.text()
       llmTest = { ok: r.ok, status: r.status, endpoint: testUrl, sample: txt.slice(0, 220) }
