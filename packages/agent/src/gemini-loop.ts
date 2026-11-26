@@ -74,16 +74,10 @@ export async function runGeminiAgent(
   }
 
   const model = env.GEMINI_MODEL || 'gemini-2.5-flash'
-  const candidateEndpoints = apiKey.startsWith('AQ.')
-    ? [
-        `https://aiplatform.googleapis.com/v1/publishers/google/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-        `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
-      ]
-    : [
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
-      ]
+  const candidateEndpoints = [
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
+  ]
 
   let activeEndpoint = candidateEndpoints[0]
 
@@ -118,7 +112,10 @@ export async function runGeminiAgent(
     for (const url of urlsToTry) {
       const attempt = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         body: payload,
         signal: AbortSignal.timeout(25000),
       })
