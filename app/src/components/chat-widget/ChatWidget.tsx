@@ -1,7 +1,20 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+
+function renderFormattedText(text: string): ReactNode[] {
+  const tokens = text.split(/(\*\*[^*\n]+\*\*|_[^_\n]+_)/g)
+  return tokens.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>
+    }
+    if (part.startsWith('_') && part.endsWith('_')) {
+      return <em key={i} style={{ opacity: 0.85 }}>{part.slice(1, -1)}</em>
+    }
+    return <span key={i}>{part}</span>
+  })
+}
 import { CarImage } from '@/components/car/CarImage'
 import {
   extractCarPreviews,
@@ -403,7 +416,7 @@ export function ChatWidget() {
                   <div
                     className={`msg-bubble ${msg.role === 'user' ? 'msg-user' : 'msg-ai'}`}
                   >
-                    {msg.content}
+                    {renderFormattedText(msg.content)}
                   </div>
 
                   {carPreviews.length > 0 && (

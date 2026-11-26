@@ -10,7 +10,7 @@ export type Language = 'en' | 'ta' | 'tl'
 // Tamil Unicode range: \u0B80-\u0BFF
 const TAMIL_REGEX = /[\u0B80-\u0BFF]/
 // Common Tanglish words
-const TANGLISH_MARKERS = /\b(naan|unga|enna|enga|evlo|pannunga|sollunga|irukku|venum|venaam|paarunga|kitta|pola|romba|konjam|dhaan|seri|illa|aana|appo)\b/i
+const TANGLISH_MARKERS = /\b(naan|unga|enna|enga|evlo|pannunga|sollunga|irukku|irukka|irukeenga|epadi|eppadi|epdi|vanakkam|venum|venaam|paarunga|kitta|pola|romba|konjam|dhaan|seri|illa|aana|appo|nalla|machan|anna|akka|thamizh)\b/i
 
 /**
  * Detect language from text.

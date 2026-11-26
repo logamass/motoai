@@ -74,13 +74,18 @@ export async function runGeminiAgent(
   }
 
   const model = env.GEMINI_MODEL || 'gemini-2.5-flash'
-  const endpoint = apiKey.startsWith('AQ.')
-    ? `https://aiplatform.googleapis.com/v1/publishers/google/models/${encodeURIComponent(
-        model
-      )}:generateContent?key=${encodeURIComponent(apiKey)}`
-    : `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
-        model
-      )}:generateContent?key=${encodeURIComponent(apiKey)}`
+  const candidateEndpoints = apiKey.startsWith('AQ.')
+    ? [
+        `https://aiplatform.googleapis.com/v1/publishers/google/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+        `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+      ]
+    : [
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+      ]
+
+  let activeEndpoint = candidateEndpoints[0]
 
   const db = getDb()
   const functionDeclarations = toGeminiFunctionDeclarations(tools)
@@ -97,24 +102,36 @@ export async function runGeminiAgent(
   let ctaUrl: { label: string; url: string } | undefined
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents,
-        tools: [{ functionDeclarations }],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 1024,
-        },
-      }),
-      signal: AbortSignal.timeout(25000),
+    const payload = JSON.stringify({
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents,
+      tools: [{ functionDeclarations }],
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 1024,
+      },
     })
 
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => '')
-      throw new Error(`Gemini API HTTP ${res.status}: ${errBody.slice(0, 200)}`)
+    let res: Response | null = null
+    let lastErr = ''
+    const urlsToTry = round === 0 ? candidateEndpoints : [activeEndpoint]
+    for (const url of urlsToTry) {
+      const attempt = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        signal: AbortSignal.timeout(25000),
+      })
+      if (attempt.ok) {
+        res = attempt
+        activeEndpoint = url
+        break
+      }
+      lastErr = `HTTP ${attempt.status}: ${(await attempt.text().catch(() => '')).slice(0, 180)}`
+    }
+
+    if (!res) {
+      throw new Error(`Gemini API failed across endpoints: ${lastErr}`)
     }
 
     const data = (await res.json()) as {
