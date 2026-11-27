@@ -9,7 +9,38 @@ interface SearchCarsParams {
   bodyType?: string
   segment?: 'private' | 'taxi' | 'commercial'
   seats?: number
+  sunroof?: boolean
   limit?: number
+}
+
+/**
+ * Grounded feature truth for verified catalog models/variants.
+ * Prevents LLM from hallucinating features like sunroof on Taisor/Glanza/Rumion/Hyryder E MT.
+ */
+function resolveVariantSunroof(
+  modelSlug: string,
+  variantName: string,
+  dimensions?: Record<string, unknown> | null
+): boolean {
+  if (dimensions && typeof dimensions.sunroof === 'boolean') {
+    return dimensions.sunroof
+  }
+  const m = modelSlug.toLowerCase()
+  const v = variantName.toLowerCase()
+  // Confirmed Indian-market specs:
+  // Glanza, Taisor, Rumion, Fortuner -> NO sunroof on any India variant
+  if (m === 'glanza' || m === 'taisor' || m === 'rumion' || m === 'fortuner') {
+    return false
+  }
+  // Urban Cruiser Hyryder -> Panoramic sunroof ONLY on G / V trims (NOT E or S!)
+  if (m === 'urban-cruiser-hyryder') {
+    return /\b(g|v)\b/.test(v)
+  }
+  // Innova Hycross -> Panoramic sunroof ONLY on VX(O) / ZX / ZX(O) trims (NOT GX!)
+  if (m === 'innova-hycross') {
+    return /\b(zx|vx\(o\))\b/.test(v)
+  }
+  return false
 }
 
 interface GetVariantDetailsParams {
@@ -49,6 +80,10 @@ export const searchCars = defineTool({
     seats: {
       type: 'number',
       description: 'Required seating capacity (e.g. 5, 7, 8)',
+    },
+    sunroof: {
+      type: 'boolean',
+      description: 'Set true ONLY if customer specifically asks for a sunroof',
     },
     limit: {
       type: 'number',
@@ -121,24 +156,48 @@ export const searchCars = defineTool({
           brandId: brands.id,
           brandSlug: brands.slug,
           brandName: brands.name,
+          mileage: specs.mileage,
+          airbags: specs.airbags,
+          adas: specs.adas,
+          dimensions: specs.dimensions,
         })
         .from(variants)
         .innerJoin(models, eq(variants.modelId, models.id))
         .innerJoin(brands, eq(models.brandId, brands.id))
+        .leftJoin(specs, eq(specs.variantId, variants.id))
         .where(and(...conditions))
-        .limit(maxRows)
+        .limit(25)
 
-      if (rows.length === 0) {
+      const enriched = rows
+        .map((r) => {
+          const hasSunroof = resolveVariantSunroof(r.modelSlug, r.variantName, r.dimensions)
+          return {
+            ...r,
+            hasSunroof,
+            sunroofNote: hasSunroof
+              ? 'Panoramic sunroof available on this variant'
+              : 'NO sunroof on this variant',
+          }
+        })
+        .filter((r) => (typeof params.sunroof === 'boolean' ? r.hasSunroof === params.sunroof : true))
+        .slice(0, maxRows)
+
+      if (enriched.length === 0) {
         return {
           cars: [],
           total: 0,
-          message: 'No matching active vehicles found in the catalog.',
+          inMotoAiDatabase: false,
+          message:
+            params.sunroof === true
+              ? 'No matching vehicle WITH a sunroof found in MotoAI verified database for these filters. Do NOT guess or invent sunroof availability — tell the customer honestly and use search_web_cars to look up real online options.'
+              : 'No matching active vehicles found in MotoAI verified database. Tell the customer honestly and use search_web_cars if helpful.',
         }
       }
 
       return {
-        cars: rows,
-        total: rows.length,
+        cars: enriched,
+        total: enriched.length,
+        inMotoAiDatabase: true,
       }
     } catch (error) {
       return {

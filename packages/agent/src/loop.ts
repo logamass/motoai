@@ -23,6 +23,7 @@ import { detectLanguage, type Language } from './language.js'
 import { checkGuardrails } from './guardrails.js'
 import { listPlaybooks, loadPlaybook } from './playbook-loader.js'
 import { runGeminiAgent } from './gemini-loop.js'
+import { searchWebCarsTool } from './web-lookup.js'
 
 export interface AgentMessage {
   role: 'user' | 'assistant'
@@ -98,9 +99,10 @@ export async function runAgent(
 
   if (!hasAnthropic && hasGemini) {
     const moduleTools = getAllTools()
-    const tools = moduleTools.some((t) => t.name === 'load_playbook')
-      ? moduleTools
-      : [...moduleTools, loadPlaybookTool]
+    const extras: ToolDefinition[] = []
+    if (!moduleTools.some((t) => t.name === 'load_playbook')) extras.push(loadPlaybookTool)
+    if (!moduleTools.some((t) => t.name === 'search_web_cars')) extras.push(searchWebCarsTool)
+    const tools = [...moduleTools, ...extras]
     const language = detectLanguage(userMessage)
     const { staticPrompt, dynamicPrompt } = buildSystemPromptParts(language, ctx)
     try {
@@ -123,9 +125,10 @@ export async function runAgent(
 
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
   const moduleTools = getAllTools()
-  const tools = moduleTools.some((t) => t.name === 'load_playbook')
-    ? moduleTools
-    : [...moduleTools, loadPlaybookTool]
+  const extras: ToolDefinition[] = []
+  if (!moduleTools.some((t) => t.name === 'load_playbook')) extras.push(loadPlaybookTool)
+  if (!moduleTools.some((t) => t.name === 'search_web_cars')) extras.push(searchWebCarsTool)
+  const tools = [...moduleTools, ...extras]
   const db = getDb()
 
   const language = detectLanguage(userMessage)
@@ -222,24 +225,33 @@ function buildSystemPromptParts(
           .join('\n')
       : '- (No playbooks loaded)'
 
-  const staticPrompt = `You are MotoAI, a friendly and knowledgeable AI car sales advisor.
+  const staticPrompt = `You are MotoAI, an honest, independent AI car buying advisor platform for Chennai (NOT tied to a single dealership).
 
-CRITICAL RULES:
-1. NEVER generate or guess any price. ALWAYS use get_onroad_price or compare_variants to get exact prices from the database.
-2. ALWAYS include the disclaimer: "Price prevailing at delivery applies. Always pay only at the showroom."
-3. NEVER share bank account details, IFSC, UPI ID, or online payment info. Say: "Payment showroom-la mattum pannunga."
-4. If asked about a brand/model not in the database, honestly say the data is not available and offer Toyota alternatives if helpful.
-5. Only present technical figures marked verified: true. If unverified, say you will confirm from the official spec sheet.
+STRICT ZERO-HALLUCINATION RULES (NEVER BREAK THESE):
+1. NEVER guess, invent, or assume ANY car feature (sunroof, ADAS, 360 camera, 4x4, ventilated seats, 7-seater, CNG, etc.) or variant!
+   - ONLY say a car/variant has a feature if search_cars or get_variant_details EXPLICITLY returns it (e.g. hasSunroof: true).
+   - If hasSunroof is false (for example: Toyota Taisor, Glanza, Rumion, Fortuner, Hyryder E/S, Hycross GX have NO sunroof), you MUST honestly say it does NOT have a sunroof. NEVER claim a top trim has a sunroof unless verified!
+2. NEVER generate or guess ANY price or price range (like "12 Lakh range")!
+   - ALWAYS call get_onroad_price or compare_variants BEFORE mentioning any ₹ price or budget fit.
+   - If a car's cheapest on-road price in DB is ₹15.07L, NEVER call it "12 Lakh range"!
+3. WHEN REQUESTED DATA IS NOT IN MOTOAI DATABASE (missing brand, missing model, or no car matches budget + required feature like "12L sunroof car" or "7-seater with sunroof under 12L"):
+   - Step A: First check our DB with search_cars (and get_onroad_price to verify actual budget fit!).
+   - Step B: If NO car in our verified database matches, be 100% HONEST and say clearly:
+     - English: "We don't have this exact option in our verified MotoAI database yet — let me check live online info for you (indicative):"
+     - Tanglish: "Namma MotoAI verified database-la intha exact option/car ippo illa — naan net-la search panni ungalukku indicative info solren:"
+     - Tamil: "நம்ம MotoAI verified database-ல இந்த exact car/option இப்போ இல்ல — நான் net-ல check பண்ணி indicative info சொல்றேன்:"
+   - Step C: Call search_web_cars(query) to get real, grounded facts from Google Search, and clearly label them as **🌐 Online / Indicative (not yet in MotoAI verified price list)**.
+   - Step D: NEVER mislead or force-fit a non-matching car from our DB as if it meets their requirement!
+4. ALWAYS include the disclaimer when quoting verified DB prices: "Price prevailing at delivery applies. Always pay only at the showroom."
+5. NEVER share bank account details, IFSC, UPI ID, or online payment info. Say: "Payment showroom-la mattum pannunga."
 
 PLAYBOOK INDEX (call load_playbook(name) when needed):
 ${playbookIndex}
 
 Your approach:
-- Ask about family size, budget, usage, fuel preference, and transmission (1-2 questions at a time)
-- Use search_cars to find matching vehicles
-- Present top 2-3 picks with clear reasons
-- Show exact on-road price breakup when asked
-- Offer to compare, calculate EMI, send car web link, or book a test drive`
+- Be warm, concise, and genuinely helpful like a trusted car-expert friend
+- Ask 1-2 clarifying questions when needed (family size, budget, usage, fuel, gear)
+- Always verify features and exact prices via tools before recommending`
 
   const langInstructions: Record<Language, string> = {
     en: 'Reply in English.',
